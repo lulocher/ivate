@@ -1,0 +1,45 @@
+#' ivate: Sensitivity Analysis for the ATE with Instrumental Variables
+#'
+#' Provides tools for sensitivity analysis and partial identification of the
+#' average treatment effect (ATE) in instrumental variable (IV) settings.
+#'
+#' Under the standard IV assumptions of Angrist, Imbens, and Rubin (1996),
+#' point identification of the ATE is precluded by two unobserved quantities:
+#' \eqn{\theta_A = \mu_A^{(0)}} (mean potential outcome under control for
+#' always-takers) and \eqn{\theta_N = \mu_N^{(1)}} (mean potential outcome
+#' under treatment for never-takers). The package provides two complementary
+#' strategies:
+#'
+#' \describe{
+#'   \item{\code{\link{ate_sensitivity}}}{Derives the thresholds on
+#'     \eqn{\theta_A} and \eqn{\theta_N} at which the ATE equals a
+#'     policy-relevant decision threshold, and visualises the sensitivity
+#'     surface.}
+#'   \item{\code{\link{ate_bounds}}}{Computes bounds on the ATE under
+#'     user-supplied restrictions on \eqn{\theta_A} and \eqn{\theta_N},
+#'     nesting the Balke-Pearl sharp bounds as a special case for binary
+#'     outcomes.}
+#' }
+#'
+#' @references
+#' Angrist, J. D., Imbens, G. W., and Rubin, D. B. (1996). Identification of
+#' causal effects using instrumental variables. \emph{Journal of the American
+#' Statistical Association}, 91(434), 444--455.
+#' \doi{10.1080/01621459.1996.10476902}
+#'
+#' Balke, A. and Pearl, J. (1997). Bounds on treatment effects from studies
+#' with imperfect compliance. \emph{Journal of the American Statistical
+#' Association}, 92(439), 1171--1176.
+#' \doi{10.2307/2965583}
+#'
+#' Locher, L. and Stensrud, M. J. (2025). Informative inference on the average
+#' treatment effect with instrumental variables.
+#'
+#' @keywords internal
+"_PACKAGE"
+
+## usethis namespace: start
+#' @import ggplot2
+#' @importFrom dplyr %>%
+## usethis namespace: end
+NULL

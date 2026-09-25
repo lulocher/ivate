@@ -7,129 +7,150 @@
 ate_sensitivity(
   data,
   formula,
-  decision_threshold = 0,
-  plot_outcome_range = NULL,
-  plot_n_grid = 101,
-  plot_show_title = TRUE,
-  plot_show_subtitle = TRUE,
-  plot_label_tol = 0.05
+  cutoff = 0,
+  direction = c("greater", "less"),
+  theta_A0 = NULL,
+  theta_N1 = NULL,
+  y_range = NULL,
+  ci = TRUE,
+  n_boot = 1000,
+  level = 0.95,
+  boot_strata = c("none", "instrument")
 )
 }
 \arguments{
-\item{data}{A data frame containing the outcome, treatment, and instrument
-variables.}
+\item{data}{A data frame.}
 
-\item{formula}{A two-part formula of the form
-\code{outcome ~ treatment | instrument}.}
+\item{formula}{A formula \code{outcome ~ treatment | instrument} (or a string).
+Treatment and instrument must be binary (0/1), with the instrument
+coded such that it increases treatment uptake.}
 
-\item{decision_threshold}{Numeric scalar. The policy-relevant threshold
-\eqn{x} such that the decision criterion is \eqn{\Psi_{ATE} > x}.
-Defaults to \code{0}.}
+\item{cutoff}{The policy-relevant threshold \eqn{x} in the decision
+criterion. Defaults to \code{0}.}
 
-\item{plot_outcome_range}{Numeric vector of length 2 giving the range of
-the outcome used for the sensitivity parameter grid and plot axes. If
-\code{NULL} (the default), the observed range of the outcome is used.}
+\item{direction}{\code{"greater"} for the criterion \eqn{\Psi_{ATE} > x}
+(default) or \code{"less"} for \eqn{\Psi_{ATE} < x}. This affects the
+reported inequalities and which value of a restricted parameter is least
+favourable, not the location of the threshold.}
 
-\item{plot_n_grid}{Integer. Number of grid points along each axis of the
-sensitivity parameter grid (two-sided case only). Defaults to \code{101}.}
+\item{theta_A0, theta_N1}{Optional restriction on one sensitivity parameter
+(two-sided non-compliance only): a single number (fixes the parameter), a
+length-2 interval, a restriction created by \code{\link[=restrict_level]{restrict_level()}},
+\code{\link[=restrict_effect]{restrict_effect()}}, \code{\link[=restrict_ratio]{restrict_ratio()}}, or \code{\link[=restrict_heterogeneity]{restrict_heterogeneity()}},
+or a list of these (intersected).}
 
-\item{plot_show_title}{Logical; whether to display the plot title.
-Defaults to \code{TRUE}.}
+\item{y_range}{Numeric vector \code{c(y_min, y_max)} giving the range of the
+outcome. Defaults to \code{c(0, 1)} for binary outcomes and to the observed
+range otherwise.}
 
-\item{plot_show_subtitle}{Logical; whether to display the plot subtitle.
-Defaults to \code{TRUE}.}
+\item{ci}{Logical; compute bootstrap confidence intervals? Defaults to
+\code{TRUE}.}
 
-\item{plot_label_tol}{Numeric. Tolerance for collapsing nearby
-secondary-axis labels, expressed as a fraction of the axis range.
-Defaults to \code{0.05}.}
+\item{n_boot}{Number of bootstrap replicates. Defaults to \code{1000}.}
+
+\item{level}{Confidence level. Defaults to \code{0.95}.}
+
+\item{boot_strata}{\code{"none"} (default) resamples observations iid;
+\code{"instrument"} resamples within instrument arms, keeping the arm sizes
+fixed as in a randomised trial.}
 }
 \value{
-A named list with the following elements:
+An object of class \code{ivate_sensitivity} with elements
 \describe{
-\item{\code{identified_quantities}}{A named list of identified type
-shares (\eqn{\pi_C}, \eqn{\pi_A}, \eqn{\pi_N}) and conditional
-potential outcome means (\eqn{\mu_C^{(0)}}, \eqn{\mu_C^{(1)}},
-\eqn{\mu_A^{(1)}}, \eqn{\mu_N^{(0)}}).}
-\item{\code{threshold}}{The sensitivity threshold(s) at which
-\eqn{\Psi_{ATE} = } \code{decision_threshold}. In the two-sided
-case, a character string giving the boundary equations for both
-\eqn{\theta_A} and \eqn{\theta_N}. In the one-sided cases, a named
-list containing the scalar threshold (\code{theta_A} or
-\code{theta_N}), the \code{implied_effect_additive}, and, for binary
-outcomes, the \code{implied_effect_risk_ratio}.}
-\item{\code{plot}}{A \code{ggplot} object visualising the sensitivity
-analysis.}
+\item{\code{setting}}{\code{"two-sided"}, \code{"never-takers only"}, or
+\code{"always-takers only"}.}
+\item{\code{identified}}{Data frame of identified quantities (type shares,
+potential outcome means, LATE) with confidence intervals.}
+\item{\code{threshold}}{Data frame with the threshold \eqn{\tau} on the
+remaining sensitivity parameter and its confidence interval, or
+\code{NULL} in the unrestricted two-sided case.}
+\item{\code{fixed}}{Data frame describing the restricted parameter and its
+least favourable value, or \code{NULL}.}
+\item{\code{implied}}{Data frame of implied comparisons at the threshold
+with identified benchmarks, or \code{NULL}.}
+\item{\code{boundary}}{Data frame with intercepts and slopes of the boundary
+\eqn{\mathcal{B}} (two-sided case), or \code{NULL}.}
+\item{\code{boot}}{Matrix of bootstrap replicates of the identified
+quantities, or \code{NULL}.}
 }
-In the fully compliant case (no non-compliance), \code{NULL} is returned
-invisibly and the point-identified ATE is printed as a message.
+together with the inputs. Use \link[=plot.ivate_sensitivity]{plot()} to
+visualise the result.
 }
 \description{
-Point identification of the average treatment effect (ATE) is precluded
-under standard IV assumptions by two unidentified quantities:
-\eqn{\theta_A = \mu_A^{(0)}}, the mean potential outcome under control for
-always-takers, and \eqn{\theta_N = \mu_N^{(1)}}, the mean potential outcome
-under treatment for never-takers. This function derives the thresholds on
-these sensitivity parameters at which the ATE equals a policy-relevant
-decision threshold, and produces a corresponding visualisation.
+Under the standard IV assumptions (consistency, relevance, independence,
+exclusion restriction, and monotonicity), point identification of the
+average treatment effect (ATE) is precluded by two unidentified quantities:
+\eqn{\theta_A^{(0)} = E[Y(0) \mid A]}, the mean potential outcome under
+control among always-takers, and \eqn{\theta_N^{(1)} = E[Y(1) \mid N]}, the
+mean potential outcome under treatment among never-takers. This function
+derives the values of these sensitivity parameters at which the decision
+criterion \eqn{\Psi_{ATE} > x} (or \eqn{\Psi_{ATE} < x}) switches, and
+expresses them as implied comparisons with identified quantities (Section
+2.4 of Locher, Richardson, and Stensrud, 2026).
 }
 \details{
-The ATE decomposes as (equation (7) in Locher, Richardson, and Stensrud (2026)):
-\deqn{
-  \Psi_{ATE} = \pi_C(\mu_C^{(1)} - \mu_C^{(0)})
-             + \pi_A(\mu_A^{(1)} - \theta_A)
-             + \pi_N(\theta_N   - \mu_N^{(0)}).
-}
+The ATE decomposes as (equation (7))
+\deqn{\Psi_{ATE} = \pi_C(\mu_C^{(1)} - \mu_C^{(0)})
+  + \pi_A(\mu_A^{(1)} - \theta_A^{(0)})
+  + \pi_N(\theta_N^{(1)} - \mu_N^{(0)}),}
+where all quantities except \eqn{\theta_A^{(0)}} and \eqn{\theta_N^{(1)}}
+are identified.
 
-Three compliance scenarios are handled automatically:
-\describe{
-\item{Two-sided non-compliance}{Both always-takers and never-takers are
-present. The decision criterion \eqn{\Psi_{ATE} \ge x} defines a
-half-plane in \eqn{(\theta_A, \theta_N)} space. The boundary of this
-half-plane is returned as a character string and visualised as a
-heatmap with a dark red contour at \code{decision_threshold}.}
-\item{Always-takers only (\eqn{\pi_N = 0})}{Only \eqn{\theta_A} is
-unidentified. A scalar threshold \eqn{\tau_A} is returned together with
-the implied additive treatment effect (and, for binary outcomes, the
-implied risk ratio) among always-takers. Visualised as a colour strip.}
-\item{Never-takers only (\eqn{\pi_A = 0})}{Only \eqn{\theta_N} is
-unidentified. A scalar threshold \eqn{\tau_N} is returned together with
-the implied additive treatment effect (and, for binary outcomes, the
-implied risk ratio) among never-takers. Visualised as a colour strip.}
-}
+\strong{One-sided non-compliance.} If only never-takers (or only always-takers)
+are present, a single scalar threshold \eqn{\tau} fully characterises the
+decision problem (equation (10)).
+
+\strong{Two-sided non-compliance.} The criterion defines a half-plane in
+\eqn{(\theta_A^{(0)}, \theta_N^{(1)})}; its boundary \eqn{\mathcal{B}} is
+returned both on the level scale and on the scale of the implied
+type-specific treatment effects (equations (8) and (9)). Following the
+two-step strategy of Section 3.2, one of the two parameters can be
+restricted via \code{theta_A0} or \code{theta_N1}: the threshold for the other
+parameter is then evaluated at the least favourable value within the
+restriction. For instance, \code{theta_A0 = 1} fixes
+\eqn{\theta_A^{(0)} = 1} (the worst case for \eqn{\Psi_{ATE} > x} with a
+binary outcome), and \code{theta_A0 = restrict_effect(lower = 0)} assumes a
+non-negative effect among always-takers, whose least favourable value is
+\eqn{\theta_A^{(0)} = \mu_A^{(1)}}.
+
+\strong{Implied comparisons.} At the threshold, the implied treatment effect
+and ratio within the unidentified type and the implied outcome
+heterogeneity relative to compliers are reported, each next to an
+identified benchmark (Figure 1 of the manuscript). Ratios are only
+reported for non-negative outcomes.
+
+\strong{Inference.} Confidence intervals are percentile intervals from the
+nonparametric bootstrap (Section 2.6). Call \code{\link[=set.seed]{set.seed()}} beforehand for
+reproducible intervals.
 }
 \examples{
-# ── Two-sided non-compliance ──────────────────────────────────────────────
-set.seed(42)
-n   <- 2000
-z   <- rbinom(n, 1, 0.5)
-a   <- ifelse(z == 1, rbinom(n, 1, 0.7), rbinom(n, 1, 0.2))
-y   <- rbinom(n, 1, 0.3 + 0.2 * a)
-dat <- data.frame(y = y, a = a, z = z)
+set.seed(1)
+n <- 2000
+z <- rbinom(n, 1, 0.5)
 
-res <- ate_sensitivity(dat, y ~ a | z)
-res$threshold
-res$plot
+# One-sided non-compliance (never-takers only)
+a <- ifelse(z == 1, rbinom(n, 1, 0.6), 0)
+y <- rbinom(n, 1, 0.3 + 0.1 * a)
+res <- ate_sensitivity(data.frame(y, a, z), y ~ a | z, n_boot = 200)
+res
 
-# ── One-sided non-compliance (never-takers only) ───────────────────────────
-a_nt <- ifelse(z == 1, rbinom(n, 1, 0.6), 0L)
-dat2 <- data.frame(y = y, a = a_nt, z = z)
-
-res2 <- ate_sensitivity(dat2, y ~ a | z, decision_threshold = 0)
-res2$threshold
-res2$plot
+# Two-sided non-compliance: boundary, then fix theta_A0 at its worst case
+a2 <- ifelse(z == 1, rbinom(n, 1, 0.7), rbinom(n, 1, 0.2))
+y2 <- rbinom(n, 1, 0.3 + 0.2 * a2)
+dat2 <- data.frame(y = y2, a = a2, z = z)
+ate_sensitivity(dat2, y ~ a | z, ci = FALSE)
+ate_sensitivity(dat2, y ~ a | z, theta_A0 = 1, ci = FALSE)
+ate_sensitivity(dat2, y ~ a | z, theta_A0 = restrict_effect(lower = 0), ci = FALSE)
 
 }
 \references{
+Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference
+on the average treatment effect with instrumental variables.
+
 Angrist, J. D., Imbens, G. W., and Rubin, D. B. (1996). Identification of
 causal effects using instrumental variables. \emph{Journal of the American
 Statistical Association}, 91(434), 444--455.
-\doi{10.1080/01621459.1996.10476902}
-
-Balke, A. and Pearl, J. (1997). Bounds on treatment effects from studies
-with imperfect compliance. \emph{Journal of the American Statistical
-Association}, 92(439), 1171--1176.
-\doi{10.2307/2965583}
-
-Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference on the average
-treatment effect with instrumental variables.
+}
+\seealso{
+\code{\link[=ate_bounds]{ate_bounds()}} for bounds under restrictions, \link{restrictions}.
 }

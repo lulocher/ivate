@@ -1,141 +1,123 @@
-# Internal helper functions — not exported.
-# These are not intended to be called directly by users.
+# Internal helpers -- not exported.
+
+#' Parse a formula of the form `outcome ~ treatment | instrument`
+#'
+#' @param formula A formula or a character string coercible to one.
+#' @return A named character vector with elements `outcome`, `treatment`, and
+#'   `instrument`.
+#' @keywords internal
+#' @noRd
+parse_iv_formula <- function(formula) {
+  if (is.character(formula)) formula <- stats::as.formula(formula)
+  msg <- "`formula` must be of the form `outcome ~ treatment | instrument`."
+  if (!inherits(formula, "formula") || length(formula) != 3L) stop(msg, call. = FALSE)
+
+  rhs <- formula[[3L]]
+  if (!is.call(rhs) || !identical(rhs[[1L]], as.name("|"))) stop(msg, call. = FALSE)
+
+  vars <- list(outcome = formula[[2L]], treatment = rhs[[2L]], instrument = rhs[[3L]])
+  if (!all(vapply(vars, is.name, logical(1)))) {
+    stop("Each part of `formula` must be a single variable name.", call. = FALSE)
+  }
+  vapply(vars, as.character, character(1))
+}
+
+#' Validate and extract IV data
+#'
+#' Extracts outcome, treatment, and instrument from `data`, drops incomplete
+#' observations (with a warning), coerces to numeric, and checks that
+#' treatment and instrument are binary (0/1) and that both instrument arms are
+#' observed.
+#'
+#' @param data A data frame.
+#' @param formula A formula of the form `outcome ~ treatment | instrument`.
+#' @return A list with numeric vectors `y`, `a`, `z` and the variable names
+#'   `vars`.
+#' @keywords internal
+#' @noRd
+prepare_iv_data <- function(data, formula) {
+  if (!is.data.frame(data)) stop("`data` must be a data frame.", call. = FALSE)
+  vars <- parse_iv_formula(formula)
+
+  missing_vars <- setdiff(vars, names(data))
+  if (length(missing_vars) > 0) {
+    stop(sprintf("Variable(s) not found in `data`: %s.",
+                 paste(missing_vars, collapse = ", ")), call. = FALSE)
+  }
+
+  d <- lapply(vars, function(v) {
+    x <- data[[v]]
+    if (is.factor(x)) x <- as.character(x)
+    x_num <- suppressWarnings(as.numeric(x))
+    if (any(is.na(x_num) & !is.na(x))) {
+      stop(sprintf("'%s' cannot be coerced to numeric. Please check your data.", v),
+           call. = FALSE)
+    }
+    x_num
+  })
+
+  complete <- stats::complete.cases(d$outcome, d$treatment, d$instrument)
+  if (!all(complete)) {
+    warning(sprintf("Removed %d observation(s) with missing values.", sum(!complete)),
+            call. = FALSE)
+    d <- lapply(d, `[`, complete)
+  }
+
+  for (part in c("treatment", "instrument")) {
+    x <- d[[part]]
+    if (!all(x %in% c(0, 1))) {
+      vals <- sort(unique(x))
+      stop(sprintf("The %s '%s' must be binary (0/1 only). Found values: %s.",
+                   part, vars[[part]], paste(vals[seq_len(min(10, length(vals)))], collapse = ", ")),
+           call. = FALSE)
+    }
+  }
+  if (!all(c(0, 1) %in% d$instrument)) {
+    stop("Both instrument arms (0 and 1) must be observed.", call. = FALSE)
+  }
+
+  list(y = d$outcome, a = d$treatment, z = d$instrument, vars = vars)
+}
 
 #' Check whether a vector is binary (0/1)
 #' @keywords internal
+#' @noRd
 is_binary <- function(y) all(y %in% c(0, 1))
 
-#' Round a number to a given number of digits
+#' Resolve the outcome range \eqn{[y_{min}, y_{max}]}
+#'
+#' Defaults to `c(0, 1)` for binary outcomes and to the observed range
+#' otherwise.
 #' @keywords internal
-fmt <- function(x, digits = 3) round(x, digits)
-
-#' Collapse nearby secondary-axis labels
-#'
-#' Values within \code{tol * diff(range)} of each other are grouped; each
-#' group's break is placed at the group mean and labels are joined with
-#' \code{"\\n"}.
-#'
-#' @param vals   Numeric vector of axis positions.
-#' @param labels Character vector of axis labels (same length as \code{vals}).
-#' @param range  Numeric vector of length 2 giving the axis range.
-#' @param tol    Tolerance as a fraction of the axis range (default 0.05).
-#' @return A named list with elements \code{vals} and \code{labels}.
-#' @keywords internal
-collapse_nearby_labels <- function(vals, labels, range, tol = 0.05) {
-  tol_abs <- tol * diff(range)
-  ord     <- order(vals)
-  vals    <- vals[ord]
-  labels  <- labels[ord]
-
-  groups     <- cumsum(c(TRUE, diff(vals) > tol_abs))
-  new_vals   <- as.numeric(tapply(vals,   groups, mean))
-  new_labels <- as.character(tapply(labels, groups, paste, collapse = "\n"))
-
-  list(vals = new_vals, labels = new_labels)
-}
-
-#' Extract outcome, treatment, and instrument vectors from a formula
-#'
-#' Parses a formula of the form \code{outcome ~ treatment | instrument} and
-#' returns the corresponding columns from \code{data}.
-#'
-#' @param data    A data frame.
-#' @param formula A formula with a \code{|} separator for the instrument, e.g.
-#'   \code{y ~ a | z}.
-#' @return A named list with elements \code{outcome}, \code{treatment}, and
-#'   \code{instrument}.
-#' @keywords internal
-get_data_from_formula <- function(data, formula) {
-  vars <- all.vars(as.formula(formula))
-  list(
-    outcome    = data[[vars[1]]],
-    treatment  = data[[vars[2]]],
-    instrument = data[[vars[3]]]
-  )
-}
-
-#' Validate and coerce IV data inputs
-#'
-#' Checks that the treatment and instrument are binary (0/1) and that the
-#' outcome is numeric. If treatment or instrument have the correct values but
-#' wrong storage type they are silently coerced to numeric.
-#'
-#' @param data    A data frame.
-#' @param formula A formula of the form \code{outcome ~ treatment | instrument}.
-#' @return A named list with elements \code{outcome}, \code{treatment}, and
-#'   \code{instrument}, all of class \code{numeric}.
-#' @keywords internal
-validate_iv_data <- function(data, formula) {
-  d <- get_data_from_formula(data, formula)
-
-  for (var in c("treatment", "instrument")) {
-    x     <- d[[var]]
-    x_num <- suppressWarnings(as.numeric(x))
-
-    if (anyNA(x_num)) {
-      stop(sprintf(
-        "'%s' cannot be coerced to numeric. Please check your data.", var
-      ))
-    }
-    if (!all(x_num %in% c(0, 1))) {
-      stop(sprintf(
-        "'%s' must be binary (0/1 only). Found values: %s.",
-        var, paste(sort(unique(x_num)), collapse = ", ")
-      ))
-    }
-    d[[var]] <- x_num
+#' @noRd
+resolve_y_range <- function(y, y_range = NULL) {
+  if (is.null(y_range)) {
+    return(if (is_binary(y)) c(0, 1) else range(y))
   }
-
-  outcome_num <- suppressWarnings(as.numeric(d$outcome))
-  if (anyNA(outcome_num)) {
-    stop("'outcome' cannot be coerced to numeric. Please check your data.")
+  if (!is.numeric(y_range) || length(y_range) != 2L || anyNA(y_range) ||
+      y_range[1] >= y_range[2]) {
+    stop("`y_range` must be a numeric vector c(y_min, y_max) with y_min < y_max.",
+         call. = FALSE)
   }
-  d$outcome <- outcome_num
-
-  d
+  if (min(y) < y_range[1] || max(y) > y_range[2]) {
+    stop("Observed outcomes lie outside `y_range`.", call. = FALSE)
+  }
+  y_range
 }
 
-#' Compute identified type shares and potential outcome means
-#'
-#' Under the standard IV assumptions of Angrist, Imbens, and Rubin (1996), the
-#' compliance-type shares and the conditional potential outcome means that are
-#' identifiable from observed data are recovered here (see Appendix A of Locher,
-#' Richardson, and Stensrud (2026) for derivations).
-#'
-#' @param y Numeric vector of outcomes.
-#' @param a Numeric binary vector of treatments (0/1).
-#' @param z Numeric binary vector of instruments (0/1).
-#' @return A named list:
-#'   \describe{
-#'     \item{p_at}{Share of always-takers \eqn{\pi_A}.}
-#'     \item{p_nt}{Share of never-takers \eqn{\pi_N}.}
-#'     \item{p_c}{Share of compliers \eqn{\pi_C}.}
-#'     \item{y1_c}{Complier mean under treatment \eqn{\mu_C^{(1)}}.}
-#'     \item{y0_c}{Complier mean under control \eqn{\mu_C^{(0)}}.}
-#'     \item{y1_at}{Always-taker mean under treatment \eqn{\mu_A^{(1)}}.}
-#'     \item{y0_nt}{Never-taker mean under control \eqn{\mu_N^{(0)}}.}
-#'     \item{at_exist}{Logical; \code{TRUE} if always-takers are present.}
-#'     \item{nt_exist}{Logical; \code{TRUE} if never-takers are present.}
-#'   }
+#' Format numbers with three significant digits
 #' @keywords internal
-get_known_quantities <- function(y, a, z) {
-  p_at <- mean(a[z == 0])
-  p_nt <- 1 - mean(a[z == 1])
-  p_c  <- mean(a[z == 1]) - mean(a[z == 0])
+#' @noRd
+fmt_num <- function(x, digits = 3) {
+  out <- formatC(x, digits = digits, format = "fg")
+  out[is.na(x)] <- "NA"
+  trimws(out)
+}
 
-  at_exist <- p_at > 0
-  nt_exist <- p_nt > 0
-
-  y1_at <- if (at_exist) mean(y[a == 1 & z == 0]) else 0
-  y0_nt <- if (nt_exist) mean(y[a == 0 & z == 1]) else 0
-
-  y1_c <- ((p_c + p_at) * mean(y[a == 1 & z == 1]) - p_at * y1_at) / p_c
-  y0_c <- ((p_c + p_nt) * mean(y[a == 0 & z == 0]) - p_nt * y0_nt) / p_c
-
-  list(
-    p_at     = p_at,  p_nt  = p_nt,  p_c   = p_c,
-    y0_c     = y0_c,  y1_c  = y1_c,
-    y1_at    = y1_at, y0_nt = y0_nt,
-    at_exist = at_exist, nt_exist = nt_exist
-  )
+#' Format a confidence interval as "(lower, upper)" in square brackets
+#' @keywords internal
+#' @noRd
+fmt_ci <- function(lower, upper) {
+  ifelse(is.na(lower) & is.na(upper), "",
+         paste0("[", fmt_num(lower), ", ", fmt_num(upper), "]"))
 }

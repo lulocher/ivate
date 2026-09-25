@@ -4,31 +4,35 @@
 \name{ivate-package}
 \alias{ivate}
 \alias{ivate-package}
-\title{ivate: Sensitivity Analysis for the ATE with Instrumental Variables}
+\title{ivate: Informative inference on the ATE with instrumental variables}
 \description{
-Provides tools for sensitivity analysis and partial identification of the
-average treatment effect (ATE) in instrumental variable (IV) settings.
+Tools for sensitivity analysis and partial identification of the average
+treatment effect (ATE) in instrumental variable (IV) settings with a binary
+instrument and a binary treatment.
 }
 \details{
 Under the standard IV assumptions of Angrist, Imbens, and Rubin (1996),
 point identification of the ATE is precluded by two unobserved quantities:
-\eqn{\theta_A = \mu_A^{(0)}} (mean potential outcome under control for
-always-takers) and \eqn{\theta_N = \mu_N^{(1)}} (mean potential outcome
-under treatment for never-takers). The package provides two complementary
-strategies:
-
-\describe{
-\item{\code{\link{ate_sensitivity}}}{Derives the thresholds on
-\eqn{\theta_A} and \eqn{\theta_N} at which the ATE equals a
-policy-relevant decision threshold, and visualises the sensitivity
-surface.}
-\item{\code{\link{ate_bounds}}}{Computes bounds on the ATE under
-user-supplied restrictions on \eqn{\theta_A} and \eqn{\theta_N},
-nesting the Balke-Pearl sharp bounds as a special case for binary
-outcomes.}
+\eqn{\theta_A^{(0)}}, the mean potential outcome under control among
+always-takers, and \eqn{\theta_N^{(1)}}, the mean potential outcome under
+treatment among never-takers. The package implements the two
+complementary strategies of Locher, Richardson, and Stensrud (2026):
+\itemize{
+\item \code{\link[=ate_sensitivity]{ate_sensitivity()}} derives the thresholds on the sensitivity parameters
+at which the ATE crosses a policy-relevant cutoff and expresses them as
+implied comparisons with identified quantities.
+\item \code{\link[=ate_bounds]{ate_bounds()}} computes bounds on the ATE under restrictions on the
+sensitivity parameters (see \link{restrictions}), nesting the Balke-Pearl
+bounds as a special case for binary outcomes.
 }
+
+Both functions quantify uncertainty with the nonparametric bootstrap, and
+results can be visualised with \link[=plot.ivate_sensitivity]{plot()}.
 }
 \references{
+Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference
+on the average treatment effect with instrumental variables.
+
 Angrist, J. D., Imbens, G. W., and Rubin, D. B. (1996). Identification of
 causal effects using instrumental variables. \emph{Journal of the American
 Statistical Association}, 91(434), 444--455.
@@ -36,11 +40,7 @@ Statistical Association}, 91(434), 444--455.
 
 Balke, A. and Pearl, J. (1997). Bounds on treatment effects from studies
 with imperfect compliance. \emph{Journal of the American Statistical
-Association}, 92(439), 1171--1176.
-\doi{10.2307/2965583}
-
-Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference on the average
-treatment effect with instrumental variables.
+Association}, 92(439), 1171--1176. \doi{10.2307/2965583}
 }
 \author{
 \strong{Maintainer}: Luca Locher \email{luca.locher@uzh.ch}

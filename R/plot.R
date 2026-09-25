@@ -205,7 +205,7 @@ plot_threshold <- function(x, range, draws, n_grid, label_tol) {
   tau_in_range <- tau >= range[1] && tau <= range[2]
   sec <- collapse_nearby_labels(
     c(ref$vals, if (tau_in_range) tau),
-    c(ref$labels, if (tau_in_range) paste0(intToUtf8(0x03c4), "*")),
+    c(ref$labels, if (tau_in_range) "tau*"),
     range, tol = label_tol
   )
 

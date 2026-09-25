@@ -1,2 +1,6 @@
 ^ivate\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
+\.Rhistory$
+^.*\.Rcheck$
+^ivate_.*\.tar\.gz$

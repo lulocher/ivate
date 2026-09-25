@@ -1,0 +1,14 @@
+bibentry(
+  bibtype = "Unpublished",
+  title   = "Informative inference on the average treatment effect with instrumental variables",
+  author  = c(person("Luca", "Locher"),
+              person("Thomas", "Richardson"),
+              person("Mats", "Stensrud")),
+  year    = "2026",
+  note    = "Working paper",
+  textVersion = paste(
+    "Locher, L., Richardson, T., and Stensrud, M. (2026).",
+    "Informative inference on the average treatment effect with instrumental variables.",
+    "Working paper."
+  )
+)

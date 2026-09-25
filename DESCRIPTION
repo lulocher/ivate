@@ -1,28 +1,33 @@
 Package: ivate
-Title: Sensitivity Analysis for the ATE with Instrumental Variables
+Title: Informative Inference on the Average Treatment Effect with Instrumental Variables
 Version: 0.1.0
-Authors@R: person("First", "Last", email = "you@example.com",
-    role = c("aut", "cre"))
+Authors@R: c(
+    person("Luca", "Locher", email = "luca.locher@uzh.ch", role = c("aut", "cre")),
+    person("Thomas", "Richardson", role = "aut"),
+    person("Mats", "Stensrud", role = "aut"))
 Description: Provides tools for sensitivity analysis and partial identification
     of the average treatment effect (ATE) in instrumental variable (IV)
-    settings. Under the standard IV assumptions of Angrist, Imbens, and Rubin
-    (1996), point identification of the ATE is precluded by two unobserved
-    quantities: the mean potential outcome under control for always-takers
-    and the mean potential outcome under treatment for never-takers. This
-    package derives the thresholds on these sensitivity parameters at which
-    the ATE equals a policy-relevant decision threshold, and computes bounds
-    on the ATE under user-supplied assumptions. Both one-sided and two-sided
-    non-compliance are handled automatically.
+    settings with a binary instrument and a binary treatment. Under the
+    standard IV assumptions of Angrist, Imbens, and Rubin (1996)
+    <doi:10.1080/01621459.1996.10476902>, point identification of the ATE is
+    precluded by two unobserved quantities: the mean potential outcome under
+    control for always-takers and the mean potential outcome under treatment
+    for never-takers. This package derives the thresholds on these
+    sensitivity parameters at which the ATE equals a policy-relevant decision
+    threshold, expresses them as interpretable implied comparisons, and
+    computes bounds on the ATE under user-supplied restrictions. Uncertainty
+    is quantified by the nonparametric bootstrap. Both one-sided and
+    two-sided non-compliance are handled automatically.
 License: MIT + file LICENSE
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.1.0)
 Imports:
-    ggplot2,
-    dplyr
+    ggplot2 (>= 3.4.0),
+    stats
 Suggests:
-    testthat (>= 3.0.0),
-    knitr,
-    rmarkdown
+    patchwork,
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
-URL: https://github.com/yourusername/ivate
-BugReports: https://github.com/yourusername/ivate/issues

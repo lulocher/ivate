@@ -1,1 +1,6 @@
 .Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rcheck/
+ivate_*.tar.gz

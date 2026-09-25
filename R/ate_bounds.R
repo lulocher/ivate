@@ -5,10 +5,10 @@
 #' \eqn{\theta_A = \mu_A^{(0)}} (mean potential outcome under control for
 #' always-takers) and \eqn{\theta_N = \mu_N^{(1)}} (mean potential outcome
 #' under treatment for never-takers). When the outcome is binary, these
-#' coincide with the sharp Balke-Pearl bounds (see Appendix B of Locher and
-#' Stensrud (2025)).
+#' coincide with the sharp Balke-Pearl bounds (see Appendix B of Locher,
+#' Richardson, and Stensrud (2026)).
 #'
-#' The ATE decomposes as (equation (8) in Locher and Stensrud (2025)):
+#' The ATE decomposes as (equation (7) in Locher, Richardson, and Stensrud (2026)):
 #' \deqn{
 #'   \Psi_{ATE} = \pi_C(\mu_C^{(1)} - \mu_C^{(0)})
 #'              + \pi_A(\mu_A^{(1)} - \theta_A)
@@ -16,7 +16,7 @@
 #' }
 #' Since \eqn{\Psi_{ATE}} is decreasing in \eqn{\theta_A} and increasing in
 #' \eqn{\theta_N}, the bounds are obtained by evaluating at the corners of the
-#' assumed feasible set (equation (12)):
+#' assumed feasible set (equation (11)):
 #' \deqn{
 #'   \Psi_{ATE} \in
 #'     [\Psi_{ATE}(u_A, \ell_N),\; \Psi_{ATE}(\ell_A, u_N)].
@@ -51,7 +51,7 @@
 #' Association}, 92(439), 1171--1176.
 #' \doi{10.2307/2965583}
 #'
-#' Locher, L. and Stensrud, M. J. (2025). Informative inference on the average
+#' Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference on the average
 #' treatment effect with instrumental variables.
 #'
 #' @examples

@@ -8,7 +8,7 @@
 #' these sensitivity parameters at which the ATE equals a policy-relevant
 #' decision threshold, and produces a corresponding visualisation.
 #'
-#' The ATE decomposes as (equation (8) in Locher and Stensrud (2026)):
+#' The ATE decomposes as (equation (7) in Locher, Richardson, and Stensrud (2026)):
 #' \deqn{
 #'   \Psi_{ATE} = \pi_C(\mu_C^{(1)} - \mu_C^{(0)})
 #'              + \pi_A(\mu_A^{(1)} - \theta_A)
@@ -82,7 +82,7 @@
 #' Association}, 92(439), 1171--1176.
 #' \doi{10.2307/2965583}
 #'
-#' Locher, L. and Stensrud, M. J. (2026). Informative inference on the average
+#' Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference on the average
 #' treatment effect with instrumental variables.
 #'
 #' @examples
@@ -147,7 +147,7 @@ ate_sensitivity <- function(
       kc$p_nt * (grid$y1_nt - kc$y0_nt)
 
     # Boundary expressed separately for each sensitivity parameter
-    # (equations (9) and (10) in Locher and Stensrud (2025)).
+    # (equations (8) and (9) in Locher, Richardson, and Stensrud (2026)).
     a_coef_A <- (kc$p_at * kc$y1_at + kc$p_c * late - kc$p_nt * kc$y0_nt - decision_threshold) / kc$p_at
     b_coef_A <- kc$p_nt / kc$p_at
     str_A    <- paste0("theta_A = ", fmt(a_coef_A), " + ", fmt(b_coef_A), " * theta_N")

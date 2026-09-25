@@ -99,8 +99,8 @@ validate_iv_data <- function(data, formula) {
 #'
 #' Under the standard IV assumptions of Angrist, Imbens, and Rubin (1996), the
 #' compliance-type shares and the conditional potential outcome means that are
-#' identifiable from observed data are recovered here (see Appendix A of Locher
-#' and Stensrud (2025) for derivations).
+#' identifiable from observed data are recovered here (see Appendix A of Locher,
+#' Richardson, and Stensrud (2026) for derivations).
 #'
 #' @param y Numeric vector of outcomes.
 #' @param a Numeric binary vector of treatments (0/1).

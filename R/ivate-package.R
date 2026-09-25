@@ -32,7 +32,7 @@
 #' Association}, 92(439), 1171--1176.
 #' \doi{10.2307/2965583}
 #'
-#' Locher, L. and Stensrud, M. J. (2025). Informative inference on the average
+#' Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference on the average
 #' treatment effect with instrumental variables.
 #'
 #' @keywords internal
@@ -40,6 +40,5 @@
 
 ## usethis namespace: start
 #' @import ggplot2
-#' @importFrom dplyr %>%
 ## usethis namespace: end
 NULL

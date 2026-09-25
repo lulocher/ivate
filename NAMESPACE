@@ -3,4 +3,3 @@
 export(ate_bounds)
 export(ate_sensitivity)
 import(ggplot2)
-importFrom(dplyr,"%>%")

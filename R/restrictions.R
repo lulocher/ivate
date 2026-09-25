@@ -178,22 +178,33 @@ feasible_interval <- function(restrictions, parameter, q, y_range) {
   interval
 }
 
-#' Describe a restriction in words, e.g. "theta_N1 / mu_N0 <= 1.2"
+#' Expression of a sensitivity parameter on a given scale
 #' @keywords internal
 #' @noRd
-describe_restriction <- function(r, parameter) {
+scale_expression <- function(scale, parameter) {
   is_N <- parameter == "theta_N1"
-  expr <- switch(r$scale,
+  switch(scale,
     level         = parameter,
     effect        = if (is_N) "theta_N1 - mu_N0" else "mu_A1 - theta_A0",
     ratio         = if (is_N) "theta_N1 / mu_N0" else "mu_A1 / theta_A0",
     heterogeneity = if (is_N) "theta_N1 - mu_C1" else "theta_A0 - mu_C0"
   )
-  fmt_limit <- function(x) {
-    if (is.numeric(x)) fmt_num(x)
-    else if (inherits(x, "formula")) paste(deparse(x[[length(x)]]), collapse = "")
-    else "f(q)"
-  }
+}
+
+#' Format a restriction limit or prior hyperparameter
+#' @keywords internal
+#' @noRd
+fmt_limit <- function(x) {
+  if (is.numeric(x)) fmt_num(x)
+  else if (inherits(x, "formula")) paste(deparse(x[[length(x)]]), collapse = "")
+  else "f(q)"
+}
+
+#' Describe a restriction in words, e.g. "theta_N1 / mu_N0 <= 1.2"
+#' @keywords internal
+#' @noRd
+describe_restriction <- function(r, parameter) {
+  expr <- scale_expression(r$scale, parameter)
   unbounded_lo <- is.numeric(r$lower) && (is.infinite(r$lower) || (r$scale == "ratio" && r$lower == 0))
   unbounded_up <- is.numeric(r$upper) && is.infinite(r$upper)
   if (!unbounded_lo && !unbounded_up && identical(r$lower, r$upper)) {

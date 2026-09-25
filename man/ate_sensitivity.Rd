@@ -15,7 +15,10 @@ ate_sensitivity(
   ci = TRUE,
   n_boot = 1000,
   level = 0.95,
-  boot_strata = c("none", "instrument")
+  boot_strata = c("none", "instrument"),
+  inference = c("bootstrap", "bayes"),
+  n_draws = 4000,
+  prior_obs = 1
 )
 }
 \arguments{
@@ -44,7 +47,8 @@ outcome. Defaults to \code{c(0, 1)} for binary outcomes and to the observed
 range otherwise.}
 
 \item{ci}{Logical; compute bootstrap confidence intervals? Defaults to
-\code{TRUE}.}
+\code{TRUE}. Ignored for Bayesian inference, which always samples the
+posterior.}
 
 \item{n_boot}{Number of bootstrap replicates. Defaults to \code{1000}.}
 
@@ -53,6 +57,16 @@ range otherwise.}
 \item{boot_strata}{\code{"none"} (default) resamples observations iid;
 \code{"instrument"} resamples within instrument arms, keeping the arm sizes
 fixed as in a randomised trial.}
+
+\item{inference}{\code{"bootstrap"} (default) or \code{"bayes"} (binary outcomes
+only); see Details.}
+
+\item{n_draws}{Number of posterior draws for Bayesian inference. Defaults
+to \code{4000}.}
+
+\item{prior_obs}{Concentration parameter of the Dirichlet prior on each
+cell of \eqn{p(y, a \mid z)} for Bayesian inference. Defaults to \code{1}
+(uniform).}
 }
 \value{
 An object of class \code{ivate_sensitivity} with elements
@@ -70,8 +84,11 @@ least favourable value, or \code{NULL}.}
 with identified benchmarks, or \code{NULL}.}
 \item{\code{boundary}}{Data frame with intercepts and slopes of the boundary
 \eqn{\mathcal{B}} (two-sided case), or \code{NULL}.}
-\item{\code{boot}}{Matrix of bootstrap replicates of the identified
-quantities, or \code{NULL}.}
+\item{\code{draws}}{Matrix of bootstrap replicates or posterior draws of
+the identified quantities, or \code{NULL}.}
+\item{\code{bayes}}{For Bayesian inference, the prior settings and the
+posterior probabilities that the IV inequalities (11)-(13) of
+Richardson, Evans, and Robins (2011) are violated.}
 }
 together with the inputs. Use \link[=plot.ivate_sensitivity]{plot()} to
 visualise the result.
@@ -119,9 +136,15 @@ heterogeneity relative to compliers are reported, each next to an
 identified benchmark (Figure 1 of the manuscript). Ratios are only
 reported for non-negative outcomes.
 
-\strong{Inference.} Confidence intervals are percentile intervals from the
-nonparametric bootstrap (Section 2.6). Call \code{\link[=set.seed]{set.seed()}} beforehand for
-reproducible intervals.
+\strong{Inference.} With \code{inference = "bootstrap"} (default), estimates are
+plug-in estimates and intervals are percentile intervals from the
+nonparametric bootstrap (Section 2.6). With \code{inference = "bayes"} (binary
+outcomes only), the identified part of the model is given a Dirichlet prior
+on \eqn{p(y, a \mid z)} restricted to the distributions compatible with the
+IV assumptions (Richardson, Evans, and Robins, 2011); estimates are
+posterior medians and intervals are equal-tailed credible intervals. The
+posterior probability that the IV inequalities are violated is reported as
+a model check. Call \code{\link[=set.seed]{set.seed()}} beforehand for reproducible intervals.
 }
 \examples{
 set.seed(1)
@@ -142,6 +165,9 @@ ate_sensitivity(dat2, y ~ a | z, ci = FALSE)
 ate_sensitivity(dat2, y ~ a | z, theta_A0 = 1, ci = FALSE)
 ate_sensitivity(dat2, y ~ a | z, theta_A0 = restrict_effect(lower = 0), ci = FALSE)
 
+# Bayesian inference (binary outcomes)
+ate_sensitivity(dat2, y ~ a | z, theta_A0 = 1, inference = "bayes", n_draws = 1000)
+
 }
 \references{
 Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference
@@ -150,7 +176,12 @@ on the average treatment effect with instrumental variables.
 Angrist, J. D., Imbens, G. W., and Rubin, D. B. (1996). Identification of
 causal effects using instrumental variables. \emph{Journal of the American
 Statistical Association}, 91(434), 444--455.
+
+Richardson, T. S., Evans, R. J., and Robins, J. M. (2011). Transparent
+parametrizations of models for potential outcomes. In \emph{Bayesian Statistics
+9}, 569--610. Oxford University Press.
 }
 \seealso{
-\code{\link[=ate_bounds]{ate_bounds()}} for bounds under restrictions, \link{restrictions}.
+\code{\link[=ate_bounds]{ate_bounds()}} for bounds under restrictions, \link{restrictions},
+\code{\link[=ate_bayes]{ate_bayes()}} for the posterior of the ATE.
 }

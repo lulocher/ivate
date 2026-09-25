@@ -22,8 +22,12 @@
 #' Confidence intervals for each bound are percentile intervals from the
 #' nonparametric bootstrap (Section 2.6); restrictions that depend on
 #' identified quantities (e.g. `restrict_effect(lower = ~ late)`) are
-#' re-evaluated in every replicate. Call [set.seed()] beforehand for
-#' reproducible intervals.
+#' re-evaluated in every replicate. With `inference = "bayes"` (binary
+#' outcomes only), bounds are summarised by posterior medians and credible
+#' intervals under a Dirichlet prior on the observed distribution restricted
+#' to the IV model (Richardson, Evans, and Robins, 2011), who recommend such
+#' posteriors on bounds for partially identified parameters. Call
+#' [set.seed()] beforehand for reproducible intervals.
 #'
 #' @inheritParams ate_sensitivity
 #' @param theta_A0,theta_N1 Restrictions on the sensitivity parameters:
@@ -51,6 +55,10 @@
 #' Balke, A. and Pearl, J. (1997). Bounds on treatment effects from studies
 #' with imperfect compliance. *Journal of the American Statistical
 #' Association*, 92(439), 1171--1176.
+#'
+#' Richardson, T. S., Evans, R. J., and Robins, J. M. (2011). Transparent
+#' parametrizations of models for potential outcomes. In *Bayesian Statistics
+#' 9*, 569--610. Oxford University Press.
 #'
 #' @seealso [ate_sensitivity()], [restrictions].
 #'
@@ -82,11 +90,17 @@ ate_bounds <- function(data, formula,
                        ci          = TRUE,
                        n_boot      = 1000,
                        level       = 0.95,
-                       boot_strata = c("none", "instrument")) {
+                       boot_strata = c("none", "instrument"),
+                       inference   = c("bootstrap", "bayes"),
+                       n_draws     = 4000,
+                       prior_obs   = 1) {
   boot_strata <- match.arg(boot_strata)
+  inference   <- match.arg(inference)
   check_inference_args(ci, n_boot, level)
+  if (inference == "bayes") check_bayes_args(n_draws, prior_obs)
 
   d       <- prepare_iv_data(data, formula)
+  if (inference == "bayes") check_binary_outcome(d$y, y_range)
   y_range <- resolve_y_range(d$y, y_range)
   q       <- identify_quantities(d$y, d$a, d$z)
   check_identified(q, y_range)
@@ -103,11 +117,13 @@ ate_bounds <- function(data, formula,
     restr_N <- list()
   }
 
-  boot <- if (ci) bootstrap_q(d$y, d$a, d$z, n_boot, boot_strata) else NULL
+  unc    <- uncertainty_draws(d, setting, ci, inference, n_boot, boot_strata, n_draws, prior_obs)
+  draws  <- unc$draws
+  center <- if (inference == "bayes") "median" else "plugin"
 
-  restricted   <- evaluate_stat(bounds_stat_fun(restr_A, restr_N, y_range), q, boot, level)
-  unrestricted <- evaluate_stat(bounds_stat_fun(list(), list(), y_range), q, boot, level)
-  if (ci) warn_dropped(restricted, unrestricted, n_boot = n_boot)
+  restricted   <- evaluate_stat(bounds_stat_fun(restr_A, restr_N, y_range), q, draws, level, center)
+  unrestricted <- evaluate_stat(bounds_stat_fun(list(), list(), y_range), q, draws, level, center)
+  if (!is.null(draws)) warn_dropped(restricted, unrestricted, n_draws = nrow(draws))
 
   feasible <- data.frame(
     parameter   = c("theta_A0", "theta_N1"),
@@ -127,11 +143,13 @@ ate_bounds <- function(data, formula,
     setting      = setting,
     y_range      = y_range,
     q            = q,
-    identified   = identified_table(q, boot, level),
+    identified   = identified_table(q, draws, level, center),
     bounds       = bounds_rows(restricted),
     unrestricted = bounds_rows(unrestricted),
     feasible     = feasible,
-    boot         = boot,
+    draws        = draws,
+    inference    = inference,
+    bayes        = unc$bayes,
     level        = level
   ), class = "ivate_bounds")
 }

@@ -18,8 +18,14 @@
 #'   sensitivity parameters (see [restrictions]), nesting the Balke-Pearl
 #'   bounds as a special case for binary outcomes.
 #'
-#' Both functions quantify uncertainty with the nonparametric bootstrap, and
-#' results can be visualised with [plot()][plot.ivate_sensitivity()].
+#' Both functions quantify uncertainty with the nonparametric bootstrap or,
+#' for binary outcomes, by Bayesian inference (`inference = "bayes"`) based on
+#' the transparent parametrization of Richardson, Evans, and Robins (2011).
+#' [ate_bayes()] additionally gives the posterior of the ATE, either as a
+#' function of the sensitivity parameters or under a prior on them (see
+#' [priors]). Results can be visualised with
+#' [plot()][plot.ivate_sensitivity()]; [expand_counts()] converts published
+#' \eqn{2 \times 2 \times 2} tables into individual-level data.
 #'
 #' @references
 #' Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference
@@ -33,6 +39,10 @@
 #' Balke, A. and Pearl, J. (1997). Bounds on treatment effects from studies
 #' with imperfect compliance. *Journal of the American Statistical
 #' Association*, 92(439), 1171--1176. \doi{10.2307/2965583}
+#'
+#' Richardson, T. S., Evans, R. J., and Robins, J. M. (2011). Transparent
+#' parametrizations of models for potential outcomes. In *Bayesian Statistics
+#' 9*, 569--610. Oxford University Press.
 #'
 #' @keywords internal
 "_PACKAGE"

@@ -36,8 +36,8 @@ non-compliance).}
 \item{range}{Numeric vector of length 2 giving the plotted range of the
 sensitivity parameter(s). Defaults to the outcome range.}
 
-\item{ci}{Logical; draw bootstrap confidence bands if available? Defaults
-to \code{TRUE}.}
+\item{ci}{Logical; draw confidence (credible) bands if available?
+Defaults to \code{TRUE}.}
 
 \item{n_grid}{Number of grid points per axis.}
 
@@ -59,13 +59,16 @@ Locher, Richardson, and Stensrud (2026).
 \itemize{
 \item \strong{Threshold plot} (one-sided non-compliance, or two-sided with one
 parameter restricted): the ATE as a function of the remaining
-sensitivity parameter, with a pointwise bootstrap confidence band, the
+sensitivity parameter, with a pointwise confidence (credible) band, the
 cutoff as a horizontal line, and the threshold \eqn{\tau} (dashed) with
 its confidence interval (shaded).
 \item \strong{Boundary plot} (two-sided non-compliance): a heatmap of the ATE over
 \eqn{(\theta_A^{(0)}, \theta_N^{(1)})} with the boundary \eqn{\mathcal{B}}
-and its pointwise bootstrap confidence band.
+and its pointwise confidence (credible) band.
 }
+
+For results obtained with \code{inference = "bayes"}, curves show posterior
+medians and bands are pointwise credible bands.
 
 In both plots, the identified potential outcome means are marked as
 reference ticks on the secondary axes; nearby labels are merged.

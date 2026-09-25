@@ -41,9 +41,15 @@
 #' identified benchmark (Figure 1 of the manuscript). Ratios are only
 #' reported for non-negative outcomes.
 #'
-#' **Inference.** Confidence intervals are percentile intervals from the
-#' nonparametric bootstrap (Section 2.6). Call [set.seed()] beforehand for
-#' reproducible intervals.
+#' **Inference.** With `inference = "bootstrap"` (default), estimates are
+#' plug-in estimates and intervals are percentile intervals from the
+#' nonparametric bootstrap (Section 2.6). With `inference = "bayes"` (binary
+#' outcomes only), the identified part of the model is given a Dirichlet prior
+#' on \eqn{p(y, a \mid z)} restricted to the distributions compatible with the
+#' IV assumptions (Richardson, Evans, and Robins, 2011); estimates are
+#' posterior medians and intervals are equal-tailed credible intervals. The
+#' posterior probability that the IV inequalities are violated is reported as
+#' a model check. Call [set.seed()] beforehand for reproducible intervals.
 #'
 #' @param data A data frame.
 #' @param formula A formula `outcome ~ treatment | instrument` (or a string).
@@ -64,12 +70,20 @@
 #'   outcome. Defaults to `c(0, 1)` for binary outcomes and to the observed
 #'   range otherwise.
 #' @param ci Logical; compute bootstrap confidence intervals? Defaults to
-#'   `TRUE`.
+#'   `TRUE`. Ignored for Bayesian inference, which always samples the
+#'   posterior.
 #' @param n_boot Number of bootstrap replicates. Defaults to `1000`.
 #' @param level Confidence level. Defaults to `0.95`.
 #' @param boot_strata `"none"` (default) resamples observations iid;
 #'   `"instrument"` resamples within instrument arms, keeping the arm sizes
 #'   fixed as in a randomised trial.
+#' @param inference `"bootstrap"` (default) or `"bayes"` (binary outcomes
+#'   only); see Details.
+#' @param n_draws Number of posterior draws for Bayesian inference. Defaults
+#'   to `4000`.
+#' @param prior_obs Concentration parameter of the Dirichlet prior on each
+#'   cell of \eqn{p(y, a \mid z)} for Bayesian inference. Defaults to `1`
+#'   (uniform).
 #'
 #' @return An object of class `ivate_sensitivity` with elements
 #'   \describe{
@@ -86,8 +100,11 @@
 #'       with identified benchmarks, or `NULL`.}
 #'     \item{`boundary`}{Data frame with intercepts and slopes of the boundary
 #'       \eqn{\mathcal{B}} (two-sided case), or `NULL`.}
-#'     \item{`boot`}{Matrix of bootstrap replicates of the identified
-#'       quantities, or `NULL`.}
+#'     \item{`draws`}{Matrix of bootstrap replicates or posterior draws of
+#'       the identified quantities, or `NULL`.}
+#'     \item{`bayes`}{For Bayesian inference, the prior settings and the
+#'       posterior probabilities that the IV inequalities (11)-(13) of
+#'       Richardson, Evans, and Robins (2011) are violated.}
 #'   }
 #'   together with the inputs. Use [plot()][plot.ivate_sensitivity()] to
 #'   visualise the result.
@@ -100,7 +117,12 @@
 #' causal effects using instrumental variables. *Journal of the American
 #' Statistical Association*, 91(434), 444--455.
 #'
-#' @seealso [ate_bounds()] for bounds under restrictions, [restrictions].
+#' Richardson, T. S., Evans, R. J., and Robins, J. M. (2011). Transparent
+#' parametrizations of models for potential outcomes. In *Bayesian Statistics
+#' 9*, 569--610. Oxford University Press.
+#'
+#' @seealso [ate_bounds()] for bounds under restrictions, [restrictions],
+#'   [ate_bayes()] for the posterior of the ATE.
 #'
 #' @examples
 #' set.seed(1)
@@ -121,6 +143,9 @@
 #' ate_sensitivity(dat2, y ~ a | z, theta_A0 = 1, ci = FALSE)
 #' ate_sensitivity(dat2, y ~ a | z, theta_A0 = restrict_effect(lower = 0), ci = FALSE)
 #'
+#' # Bayesian inference (binary outcomes)
+#' ate_sensitivity(dat2, y ~ a | z, theta_A0 = 1, inference = "bayes", n_draws = 1000)
+#'
 #' @export
 ate_sensitivity <- function(data, formula,
                             cutoff      = 0,
@@ -131,15 +156,21 @@ ate_sensitivity <- function(data, formula,
                             ci          = TRUE,
                             n_boot      = 1000,
                             level       = 0.95,
-                            boot_strata = c("none", "instrument")) {
+                            boot_strata = c("none", "instrument"),
+                            inference   = c("bootstrap", "bayes"),
+                            n_draws     = 4000,
+                            prior_obs   = 1) {
   direction   <- match.arg(direction)
   boot_strata <- match.arg(boot_strata)
+  inference   <- match.arg(inference)
   if (!is.numeric(cutoff) || length(cutoff) != 1L || is.na(cutoff)) {
     stop("`cutoff` must be a single number.", call. = FALSE)
   }
   check_inference_args(ci, n_boot, level)
+  if (inference == "bayes") check_bayes_args(n_draws, prior_obs)
 
   d       <- prepare_iv_data(data, formula)
+  if (inference == "bayes") check_binary_outcome(d$y, y_range)
   y_range <- resolve_y_range(d$y, y_range)
   q       <- identify_quantities(d$y, d$a, d$z)
   check_identified(q, y_range)
@@ -154,14 +185,16 @@ ate_sensitivity <- function(data, formula,
   roles   <- sensitivity_roles(setting, restr_A, restr_N)
   restr   <- if (identical(roles$fixed, "theta_A0")) restr_A else restr_N
 
-  boot <- if (ci) bootstrap_q(d$y, d$a, d$z, n_boot, boot_strata) else NULL
+  unc    <- uncertainty_draws(d, setting, ci, inference, n_boot, boot_strata, n_draws, prior_obs)
+  draws  <- unc$draws
+  center <- if (inference == "bayes") "median" else "plugin"
 
-  identified <- identified_table(q, boot, level)
+  identified <- identified_table(q, draws, level, center)
 
   boundary <- NULL
   if (setting == "two-sided") {
     boundary <- boundary_table(
-      evaluate_stat(function(q) boundary_coefficients(q, cutoff), q, boot, level),
+      evaluate_stat(function(q) boundary_coefficients(q, cutoff), q, draws, level, center),
       direction
     )
   }
@@ -170,7 +203,7 @@ ate_sensitivity <- function(data, formula,
   stats_1d <- NULL
   if (!is.null(roles$target)) {
     stat_fun <- threshold_stat_fun(roles$target, roles$fixed, restr, cutoff, direction, y_range)
-    stats_1d <- evaluate_stat(stat_fun, q, boot, level)
+    stats_1d <- evaluate_stat(stat_fun, q, draws, level, center)
     tab      <- split_stat_table(stats_1d)
 
     threshold <- data.frame(
@@ -192,7 +225,7 @@ ate_sensitivity <- function(data, formula,
     implied <- implied_table(tab, roles$target, nonnegative = y_range[1] >= 0)
   }
 
-  if (ci) warn_dropped(stats_1d, n_boot = n_boot)
+  if (!is.null(draws)) warn_dropped(stats_1d, n_draws = nrow(draws))
 
   structure(list(
     call         = match.call(),
@@ -210,7 +243,9 @@ ate_sensitivity <- function(data, formula,
     boundary     = boundary,
     target       = roles$target,
     restrictions = if (is.null(roles$fixed)) NULL else stats::setNames(list(restr), roles$fixed),
-    boot         = boot,
+    draws        = draws,
+    inference    = inference,
+    bayes        = unc$bayes,
     level        = level
   ), class = "ivate_sensitivity")
 }
@@ -286,8 +321,8 @@ split_stat_table <- function(tab) {
 #' Table of identified quantities
 #' @keywords internal
 #' @noRd
-identified_table <- function(q, boot, level) {
-  tab <- evaluate_stat(function(q) c(q, late = q[["mu_C1"]] - q[["mu_C0"]]), q, boot, level)
+identified_table <- function(q, draws, level, center = "plugin") {
+  tab <- evaluate_stat(function(q) c(q, late = q[["mu_C1"]] - q[["mu_C0"]]), q, draws, level, center)
   tab <- tab[!is.na(tab$estimate), , drop = FALSE]
   data.frame(quantity = tab$term, description = unname(q_descriptions[tab$term]),
              tab[, -1, drop = FALSE], row.names = NULL, stringsAsFactors = FALSE)

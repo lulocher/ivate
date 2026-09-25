@@ -108,7 +108,7 @@ test_that("bootstrap confidence intervals are returned and cover the estimate", 
   set.seed(2)
   d <- sim_iv()
   res <- ate_sensitivity(d, y ~ a | z, theta_A0 = restrict_effect(lower = 0), n_boot = 200)
-  expect_equal(dim(res$boot), c(200, 7))
+  expect_equal(dim(res$draws), c(200, 7))
   t <- res$threshold
   expect_true(t$ci_lower < t$estimate && t$estimate < t$ci_upper)
   # The least favourable value depends on mu_A1 and hence has a CI
@@ -120,7 +120,7 @@ test_that("bootstrap confidence intervals are returned and cover the estimate", 
   # Stratified bootstrap keeps the arm sizes fixed
   set.seed(3)
   res_s <- ate_sensitivity(d, y ~ a | z, n_boot = 50, boot_strata = "instrument")
-  expect_equal(nrow(res_s$boot), 50)
+  expect_equal(nrow(res_s$draws), 50)
 })
 
 test_that("bootstrap is reproducible with a seed and disabled with ci = FALSE", {
@@ -129,7 +129,7 @@ test_that("bootstrap is reproducible with a seed and disabled with ci = FALSE", 
   set.seed(5); r2 <- ate_sensitivity(d, y ~ a | z, n_boot = 50)
   expect_equal(r1$threshold, r2$threshold)
   r3 <- ate_sensitivity(d, y ~ a | z, ci = FALSE)
-  expect_null(r3$boot)
+  expect_null(r3$draws)
   expect_false("ci_lower" %in% names(r3$threshold))
 })
 

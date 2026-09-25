@@ -30,3 +30,15 @@ ate_manual <- function(q, tA, tN) {
            ifelse(q["pi_A"] > 0, q["pi_A"] * (q["mu_A1"] - tA), 0) +
            ifelse(q["pi_N"] > 0, q["pi_N"] * (tN - q["mu_N0"]), 0))
 }
+
+# Published 2 x 2 x 2 tables analysed by Richardson, Evans, and Robins (2011).
+# Lipid data (Efron and Feldman, 1991; their Table 2): one-sided non-compliance.
+lipid_counts <- data.frame(
+  z = c(0, 0, 0, 0, 1, 1, 1, 1), a = c(0, 0, 1, 1, 0, 0, 1, 1),
+  y = c(0, 1, 0, 1, 0, 1, 0, 1), n = c(158, 14, 0, 0, 52, 12, 23, 78)
+)
+# Flu vaccine data (McDonald et al., 1992; their Table 5): two-sided.
+flu_counts <- data.frame(
+  z = c(0, 0, 0, 0, 1, 1, 1, 1), a = c(0, 0, 1, 1, 0, 0, 1, 1),
+  y = c(0, 1, 0, 1, 0, 1, 0, 1), n = c(99, 1027, 30, 233, 84, 935, 31, 422)
+)

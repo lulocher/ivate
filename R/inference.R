@@ -1,7 +1,8 @@
-# Nonparametric bootstrap (Section 2.6 of Locher, Richardson, and Stensrud,
-# 2026). All thresholds, boundary points, and bounds are smooth functions of
-# the identified quantities, so it suffices to bootstrap the identified
-# quantities once and re-evaluate each statistic on every replicate.
+# Uncertainty quantification. All thresholds, boundary points, and bounds are
+# smooth functions of the identified quantities q, so it suffices to draw q
+# once -- by the nonparametric bootstrap (Section 2.6 of Locher, Richardson,
+# and Stensrud, 2026) or from its posterior (Richardson, Evans, and Robins,
+# 2011; see bayes.R) -- and to re-evaluate each statistic on every draw.
 
 #' Bootstrap replicates of the identified quantities
 #'
@@ -28,56 +29,61 @@ bootstrap_q <- function(y, a, z, n_boot, strata = "none") {
   out
 }
 
-#' Estimate a statistic and its bootstrap percentile confidence interval
+#' Evaluate a statistic on the point estimate and on every draw
 #'
 #' @param stat_fun Function of the identified quantities `q` returning a named
 #'   numeric vector.
-#' @param q Identified quantities (point estimates).
-#' @param boot Matrix of bootstrap replicates of `q`, or `NULL`.
-#' @param level Confidence level.
-#' @return A data frame with columns `term`, `estimate` and, if `boot` is
-#'   supplied, `ci_lower` and `ci_upper`. The attribute `n_dropped` gives the
-#'   number of replicates in which some statistic could not be evaluated
-#'   (e.g. because a compliance type was absent from the resample).
+#' @param q Identified quantities (plug-in estimates).
+#' @param draws Matrix of bootstrap replicates or posterior draws of `q`, or
+#'   `NULL`.
+#' @param level Confidence (credible) level.
+#' @param center `"plugin"` reports the statistic at the plug-in estimate;
+#'   `"median"` reports the median over the draws (posterior median).
+#' @return A data frame with columns `term`, `estimate` and, if `draws` is
+#'   supplied, `ci_lower` and `ci_upper` (percentile intervals). The attribute
+#'   `n_dropped` gives the number of draws in which some statistic could not be
+#'   evaluated (e.g. because a compliance type was absent from the resample).
 #' @keywords internal
 #' @noRd
-evaluate_stat <- function(stat_fun, q, boot = NULL, level = 0.95) {
+evaluate_stat <- function(stat_fun, q, draws = NULL, level = 0.95, center = "plugin") {
   est <- stat_fun(q)
   out <- data.frame(term = names(est), estimate = unname(est), stringsAsFactors = FALSE)
-  if (is.null(boot)) return(out)
+  if (is.null(draws)) return(out)
 
   k <- length(est)
-  reps <- matrix(NA_real_, nrow(boot), k)
-  for (b in seq_len(nrow(boot))) {
+  reps <- matrix(NA_real_, nrow(draws), k)
+  for (b in seq_len(nrow(draws))) {
     reps[b, ] <- tryCatch(
-      { val <- stat_fun(boot[b, ]); if (length(val) == k) val else rep(NA_real_, k) },
+      { val <- stat_fun(draws[b, ]); if (length(val) == k) val else rep(NA_real_, k) },
       error = function(e) rep(NA_real_, k)
     )
   }
 
   alpha <- (1 - level) / 2
   pct <- function(v, p) if (any(is.finite(v))) stats::quantile(v[is.finite(v)], p, names = FALSE) else NA_real_
+  if (center == "median") {
+    out$estimate <- ifelse(is.na(est), NA_real_, apply(reps, 2, pct, p = 0.5))
+  }
   out$ci_lower <- apply(reps, 2, pct, p = alpha)
   out$ci_upper <- apply(reps, 2, pct, p = 1 - alpha)
 
   # Only count failures for statistics that are defined at the point estimate.
   defined <- is.finite(est)
   attr(out, "n_dropped") <- sum(!apply(is.finite(reps[, defined, drop = FALSE]), 1, all))
-  attr(out, "replicates") <- reps
   out
 }
 
-#' Warn once if bootstrap replicates had to be dropped
+#' Warn once if draws had to be dropped
 #' @keywords internal
 #' @noRd
-warn_dropped <- function(..., n_boot) {
+warn_dropped <- function(..., n_draws) {
   dropped <- max(vapply(list(...), function(x) {
     if (is.null(x)) 0 else attr(x, "n_dropped") %||% 0
   }, numeric(1)))
   if (dropped > 0) {
     warning(sprintf(paste0(
       "%d of %d bootstrap replicates could not be evaluated (e.g. a compliance type ",
-      "was absent from the resample) and were dropped."), dropped, n_boot), call. = FALSE)
+      "was absent from the resample) and were dropped."), dropped, n_draws), call. = FALSE)
   }
 }
 

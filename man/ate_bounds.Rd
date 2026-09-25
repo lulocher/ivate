@@ -13,7 +13,10 @@ ate_bounds(
   ci = TRUE,
   n_boot = 1000,
   level = 0.95,
-  boot_strata = c("none", "instrument")
+  boot_strata = c("none", "instrument"),
+  inference = c("bootstrap", "bayes"),
+  n_draws = 4000,
+  prior_obs = 1
 )
 }
 \arguments{
@@ -35,7 +38,8 @@ outcome. Defaults to \code{c(0, 1)} for binary outcomes and to the observed
 range otherwise.}
 
 \item{ci}{Logical; compute bootstrap confidence intervals? Defaults to
-\code{TRUE}.}
+\code{TRUE}. Ignored for Bayesian inference, which always samples the
+posterior.}
 
 \item{n_boot}{Number of bootstrap replicates. Defaults to \code{1000}.}
 
@@ -44,6 +48,16 @@ range otherwise.}
 \item{boot_strata}{\code{"none"} (default) resamples observations iid;
 \code{"instrument"} resamples within instrument arms, keeping the arm sizes
 fixed as in a randomised trial.}
+
+\item{inference}{\code{"bootstrap"} (default) or \code{"bayes"} (binary outcomes
+only); see Details.}
+
+\item{n_draws}{Number of posterior draws for Bayesian inference. Defaults
+to \code{4000}.}
+
+\item{prior_obs}{Concentration parameter of the Dirichlet prior on each
+cell of \eqn{p(y, a \mid z)} for Bayesian inference. Defaults to \code{1}
+(uniform).}
 }
 \value{
 An object of class \code{ivate_bounds} with elements
@@ -81,8 +95,12 @@ these unrestricted bounds are always reported for comparison.
 Confidence intervals for each bound are percentile intervals from the
 nonparametric bootstrap (Section 2.6); restrictions that depend on
 identified quantities (e.g. \code{restrict_effect(lower = ~ late)}) are
-re-evaluated in every replicate. Call \code{\link[=set.seed]{set.seed()}} beforehand for
-reproducible intervals.
+re-evaluated in every replicate. With \code{inference = "bayes"} (binary
+outcomes only), bounds are summarised by posterior medians and credible
+intervals under a Dirichlet prior on the observed distribution restricted
+to the IV model (Richardson, Evans, and Robins, 2011), who recommend such
+posteriors on bounds for partially identified parameters. Call
+\code{\link[=set.seed]{set.seed()}} beforehand for reproducible intervals.
 }
 \examples{
 set.seed(1)
@@ -112,6 +130,10 @@ on the average treatment effect with instrumental variables.
 Balke, A. and Pearl, J. (1997). Bounds on treatment effects from studies
 with imperfect compliance. \emph{Journal of the American Statistical
 Association}, 92(439), 1171--1176.
+
+Richardson, T. S., Evans, R. J., and Robins, J. M. (2011). Transparent
+parametrizations of models for potential outcomes. In \emph{Bayesian Statistics
+9}, 569--610. Oxford University Press.
 }
 \seealso{
 \code{\link[=ate_sensitivity]{ate_sensitivity()}}, \link{restrictions}.

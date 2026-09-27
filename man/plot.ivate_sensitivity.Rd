@@ -46,7 +46,8 @@ Defaults to \code{TRUE}.}
 \item{label_tol}{Reference labels closer than \code{label_tol} times the width
 of \code{range} are merged.}
 
-\item{...}{Unused.}
+\item{...}{Passed to \code{\link[=plot_comparisons]{plot_comparisons()}} for \code{type = "comparisons"}
+(e.g. \code{digits}); otherwise unused.}
 
 \item{object}{An \code{ivate_sensitivity} object.}
 }

@@ -7,6 +7,7 @@
 plot_comparisons(
   x,
   ci = FALSE,
+  digits = 2,
   colours = c(estimated = "#2E7D32", assumed = "#E08E0B", implied = "#C62828")
 )
 }
@@ -15,6 +16,10 @@ plot_comparisons(
 
 \item{ci}{Logical; show confidence (credible) intervals below the values?
 Defaults to \code{FALSE}.}
+
+\item{digits}{Number of decimals. Values that would round to zero are shown
+with as many decimals as needed for their first significant digit (e.g.
+0.0008 rather than 0.00). Defaults to \code{2}.}
 
 \item{colours}{Named character vector with colours for \code{estimated},
 \code{assumed}, and \code{implied} quantities.}

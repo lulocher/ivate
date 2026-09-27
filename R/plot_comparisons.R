@@ -29,6 +29,9 @@
 #' @param x An `ivate_sensitivity` object from [ate_sensitivity()].
 #' @param ci Logical; show confidence (credible) intervals below the values?
 #'   Defaults to `FALSE`.
+#' @param digits Number of decimals. Values that would round to zero are shown
+#'   with as many decimals as needed for their first significant digit (e.g.
+#'   0.0008 rather than 0.00). Defaults to `2`.
 #' @param colours Named character vector with colours for `estimated`,
 #'   `assumed`, and `implied` quantities.
 #'
@@ -50,17 +53,20 @@
 #' plot_comparisons(res, ci = TRUE)
 #'
 #' @export
-plot_comparisons <- function(x, ci = FALSE,
+plot_comparisons <- function(x, ci = FALSE, digits = 2,
                              colours = c(estimated = "#2E7D32", assumed = "#E08E0B",
                                          implied = "#C62828")) {
   if (!inherits(x, "ivate_sensitivity")) {
     stop("`x` must be the result of ate_sensitivity().", call. = FALSE)
   }
+  if (!is.numeric(digits) || length(digits) != 1L || is.na(digits) || digits < 0) {
+    stop("`digits` must be a single non-negative number.", call. = FALSE)
+  }
   if (!all(c("estimated", "assumed", "implied") %in% names(colours))) {
     stop("`colours` must be named `estimated`, `assumed`, and `implied`.", call. = FALSE)
   }
 
-  nodes  <- comparison_nodes(x, ci)
+  nodes  <- comparison_nodes(x, ci, digits)
   arrows <- comparison_arrows(nodes)
   status_levels <- c("estimated", "assumed", "implied")
   nodes$status  <- factor(nodes$status, levels = status_levels)
@@ -144,7 +150,7 @@ type_headers <- c(C = "Compliers", A = "Always-takers", N = "Never-takers")
 #' Nodes of the comparison roster with values and status
 #' @keywords internal
 #' @noRd
-comparison_nodes <- function(x, ci) {
+comparison_nodes <- function(x, ci, digits = 2) {
   has_A <- x$q[["pi_A"]] > 0
   has_N <- x$q[["pi_N"]] > 0
   types <- c("C", if (has_A) "A", if (has_N) "N")
@@ -153,8 +159,8 @@ comparison_nodes <- function(x, ci) {
   id <- x$identified
   est <- function(qty) {
     r <- id[id$quantity == qty, ]
-    list(value = fmt_num(r$estimate),
-         ci = if (has_ci(r)) fmt_paren_ci(r$ci_lower, r$ci_upper) else "")
+    list(value = fmt_digits(r$estimate, digits),
+         ci = if (has_ci(r)) fmt_paren_ci(r$ci_lower, r$ci_upper, digits) else "")
   }
   node <- function(key, type, arm, name, status, value, ci_label = "", circled = FALSE,
                    value_parse = FALSE) {
@@ -170,12 +176,12 @@ comparison_nodes <- function(x, ci) {
   if (has_A) {
     out <- c(out, list(
       node("A1", "A", "1", 'mu[A]^"(1)"', "estimated", est("mu_A1")$value, est("mu_A1")$ci),
-      theta_node(x, "theta_A0", "A0", "A", "0", 'theta[A]^"(0)"', node)
+      theta_node(x, "theta_A0", "A0", "A", "0", 'theta[A]^"(0)"', node, digits)
     ))
   }
   if (has_N) {
     out <- c(out, list(
-      theta_node(x, "theta_N1", "N1", "N", "1", 'theta[N]^"(1)"', node),
+      theta_node(x, "theta_N1", "N1", "N", "1", 'theta[N]^"(1)"', node, digits),
       node("N0", "N", "0", 'mu[N]^"(0)"', "estimated", est("mu_N0")$value, est("mu_N0")$ci)
     ))
   }
@@ -185,25 +191,25 @@ comparison_nodes <- function(x, ci) {
 #' Node for a sensitivity parameter: implied, assumed, or on the boundary
 #' @keywords internal
 #' @noRd
-theta_node <- function(x, parameter, key, type, arm, name, node) {
+theta_node <- function(x, parameter, key, type, arm, name, node, digits = 2) {
   if (identical(x$target, parameter)) {
     t <- x$threshold
-    ci_label <- if (has_ci(t)) fmt_paren_ci(t$ci_lower, t$ci_upper) else ""
-    return(node(key, type, arm, name, "implied", paste(t$relation, fmt_num(t$estimate)),
+    ci_label <- if (has_ci(t)) fmt_paren_ci(t$ci_lower, t$ci_upper, digits) else ""
+    return(node(key, type, arm, name, "implied", paste(t$relation, fmt_digits(t$estimate, digits)),
                 ci_label, circled = TRUE))
   }
   if (!is.null(x$fixed) && identical(x$fixed$parameter, parameter)) {
     f <- x$fixed
-    ci_label <- if (has_ci(f) && !isTRUE(f$ci_lower == f$ci_upper)) fmt_paren_ci(f$ci_lower, f$ci_upper) else ""
-    return(node(key, type, arm, name, "assumed", fmt_num(f$value), ci_label, circled = TRUE))
+    ci_label <- if (has_ci(f) && !isTRUE(f$ci_lower == f$ci_upper)) fmt_paren_ci(f$ci_lower, f$ci_upper, digits) else ""
+    return(node(key, type, arm, name, "assumed", fmt_digits(f$value, digits), ci_label, circled = TRUE))
   }
   # Two-sided without restriction: show the estimated boundary.
   b <- x$boundary[x$boundary$scale == "level" & x$boundary$lhs == parameter, ]
   other <- if (parameter == "theta_A0") 'theta[A]^"(0)"' else 'theta[N]^"(1)"'
   rhs <- if (b$rhs == "theta_A0") 'theta[A]^"(0)"' else 'theta[N]^"(1)"'
   sign <- if (b$slope < 0) "-" else "+"
-  formula <- sprintf('"%s " * "%s" %s "%s" %%.%% %s', b$relation, fmt_num(b$intercept), sign,
-                     fmt_num(abs(b$slope)), rhs)
+  formula <- sprintf('"%s " * "%s" %s "%s" %%.%% %s', b$relation, fmt_digits(b$intercept, digits), sign,
+                     fmt_digits(abs(b$slope), digits), rhs)
   node(key, type, arm, name, "implied", formula, circled = TRUE, value_parse = TRUE)
 }
 
@@ -260,4 +266,19 @@ comparison_subtitle <- function(x) {
 #' Format an interval as "(lower, upper)"
 #' @keywords internal
 #' @noRd
-fmt_paren_ci <- function(lower, upper) paste0("(", fmt_num(lower), ", ", fmt_num(upper), ")")
+fmt_paren_ci <- function(lower, upper, digits = 2) {
+  paste0("(", fmt_digits(lower, digits), ", ", fmt_digits(upper, digits), ")")
+}
+
+#' Round to `digits` decimals, or to the first significant digit if the value
+#' would otherwise be shown as zero
+#' @keywords internal
+#' @noRd
+fmt_digits <- function(x, digits = 2) {
+  vapply(x, function(v) {
+    if (is.na(v)) return("NA")
+    d <- digits
+    if (v != 0 && round(v, d) == 0) d <- max(d, ceiling(-log10(abs(v))))
+    formatC(round(v, d), format = "f", digits = d)
+  }, character(1), USE.NAMES = FALSE)
+}

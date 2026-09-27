@@ -23,9 +23,9 @@ test_that("values are filled in from the analysis", {
   d <- sim_iv()
   res <- ate_sensitivity(d, y ~ a | z, theta_A0 = 1, ci = FALSE)
   n <- comparison_nodes(res, ci = FALSE)
-  expect_equal(n$value[n$id == "N1"], paste(">", fmt_num(res$threshold$estimate)))
-  expect_equal(n$value[n$id == "A0"], "1")
-  expect_equal(n$value[n$id == "C1"], fmt_num(res$q[["mu_C1"]]))
+  expect_equal(n$value[n$id == "N1"], paste(">", fmt_digits(res$threshold$estimate, 2)))
+  expect_equal(n$value[n$id == "A0"], "1.00")
+  expect_equal(n$value[n$id == "C1"], fmt_digits(res$q[["mu_C1"]], 2))
 
   # Unrestricted two-sided: boundary formula, drawn as plotmath
   n0 <- comparison_nodes(ate_sensitivity(d, y ~ a | z, ci = FALSE), ci = FALSE)
@@ -64,3 +64,14 @@ test_that("plot_comparisons returns a ggplot, also via plot(type = 'comparisons'
   expect_error(plot_comparisons(ate_bounds(sim_iv(), y ~ a | z, ci = FALSE)), "ate_sensitivity")
   expect_error(plot_comparisons(res, colours = c(a = "red")), "named")
 })
+
+test_that("fmt_digits rounds to digits, or to the first significant digit", {
+  expect_equal(fmt_digits(c(0.703, 0.011, -1.2449, 1), 2), c("0.70", "0.01", "-1.24", "1.00"))
+  expect_equal(fmt_digits(c(0.000836, 0.00505, -0.0043, 0.0049, 0), 2), c("0.0008", "0.01", "-0.004", "0.005", "0.00"))
+  expect_equal(fmt_digits(c(0.000836, 0.00044), 3), c("0.001", "0.0004"))
+  expect_equal(fmt_digits(0.4567, 3), "0.457")
+  n <- comparison_nodes(ate_sensitivity(sim_iv(), y ~ a | z, theta_A0 = 1, ci = FALSE), ci = FALSE, digits = 3)
+  expect_true(all(nchar(sub(".*\\.", "", n$value[n$id %in% c("C1", "C0")])) >= 3))
+  expect_error(plot_comparisons(ate_sensitivity(sim_iv(), y ~ a | z, ci = FALSE), digits = -1), "digits")
+})
+

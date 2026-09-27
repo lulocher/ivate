@@ -36,7 +36,8 @@
 #' @param n_grid Number of grid points per axis.
 #' @param label_tol Reference labels closer than `label_tol` times the width
 #'   of `range` are merged.
-#' @param ... Unused.
+#' @param ... Passed to [plot_comparisons()] for `type = "comparisons"`
+#'   (e.g. `digits`); otherwise unused.
 #'
 #' @return A `ggplot` object.
 #'
@@ -72,7 +73,7 @@ autoplot.ivate_sensitivity <- function(object, type = c("auto", "threshold", "bo
                                        range = NULL, ci = TRUE, n_grid = 101,
                                        label_tol = 0.03, ...) {
   type <- match.arg(type)
-  if (type == "comparisons") return(plot_comparisons(object))
+  if (type == "comparisons") return(plot_comparisons(object, ...))
   if (type == "auto") type <- if (is.null(object$target)) "boundary" else "threshold"
   if (type == "boundary" && object$setting != "two-sided") {
     stop("The boundary plot requires two-sided non-compliance.", call. = FALSE)

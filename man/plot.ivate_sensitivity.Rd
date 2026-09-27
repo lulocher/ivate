@@ -7,7 +7,7 @@
 \usage{
 \method{plot}{ivate_sensitivity}(
   x,
-  type = c("auto", "threshold", "boundary"),
+  type = c("auto", "threshold", "boundary", "comparisons"),
   range = NULL,
   ci = TRUE,
   n_grid = 101,
@@ -17,7 +17,7 @@
 
 \method{autoplot}{ivate_sensitivity}(
   object,
-  type = c("auto", "threshold", "boundary"),
+  type = c("auto", "threshold", "boundary", "comparisons"),
   range = NULL,
   ci = TRUE,
   n_grid = 101,
@@ -31,7 +31,9 @@
 \item{type}{\code{"auto"} (default) draws the threshold plot when a scalar
 threshold is available and the boundary plot otherwise; \code{"threshold"} or
 \code{"boundary"} force a type (the boundary plot requires two-sided
-non-compliance).}
+non-compliance). \code{"comparisons"} draws the roster of estimated, assumed,
+and implied quantities (Figure 1 of the manuscript); see
+\code{\link[=plot_comparisons]{plot_comparisons()}}, which also offers intervals.}
 
 \item{range}{Numeric vector of length 2 giving the plotted range of the
 sensitivity parameter(s). Defaults to the outcome range.}
@@ -91,5 +93,6 @@ a2 <- ifelse(z == 1, rbinom(n, 1, 0.7), rbinom(n, 1, 0.2))
 y2 <- rbinom(n, 1, 0.3 + 0.2 * a2)
 res2 <- ate_sensitivity(data.frame(y = y2, a = a2, z = z), y ~ a | z, n_boot = 200)
 plot(res2)
+plot(res2, type = "comparisons")
 
 }

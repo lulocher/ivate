@@ -52,6 +52,14 @@ Richardson, T. S., Evans, R. J., and Robins, J. M. (2011). Transparent
 parametrizations of models for potential outcomes. In \emph{Bayesian Statistics
 9}, 569--610. Oxford University Press.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/lulocher/ivate}
+  \item Report bugs at \url{https://github.com/lulocher/ivate/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Luca Locher \email{luca.locher@uzh.ch}
 

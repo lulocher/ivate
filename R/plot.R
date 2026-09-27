@@ -26,7 +26,9 @@
 #' @param type `"auto"` (default) draws the threshold plot when a scalar
 #'   threshold is available and the boundary plot otherwise; `"threshold"` or
 #'   `"boundary"` force a type (the boundary plot requires two-sided
-#'   non-compliance).
+#'   non-compliance). `"comparisons"` draws the roster of estimated, assumed,
+#'   and implied quantities (Figure 1 of the manuscript); see
+#'   [plot_comparisons()], which also offers intervals.
 #' @param range Numeric vector of length 2 giving the plotted range of the
 #'   sensitivity parameter(s). Defaults to the outcome range.
 #' @param ci Logical; draw confidence (credible) bands if available?
@@ -52,9 +54,10 @@
 #' y2 <- rbinom(n, 1, 0.3 + 0.2 * a2)
 #' res2 <- ate_sensitivity(data.frame(y = y2, a = a2, z = z), y ~ a | z, n_boot = 200)
 #' plot(res2)
+#' plot(res2, type = "comparisons")
 #'
 #' @export
-plot.ivate_sensitivity <- function(x, type = c("auto", "threshold", "boundary"),
+plot.ivate_sensitivity <- function(x, type = c("auto", "threshold", "boundary", "comparisons"),
                                    range = NULL, ci = TRUE, n_grid = 101,
                                    label_tol = 0.03, ...) {
   autoplot.ivate_sensitivity(x, type = type, range = range, ci = ci,
@@ -65,10 +68,11 @@ plot.ivate_sensitivity <- function(x, type = c("auto", "threshold", "boundary"),
 #' @param object An `ivate_sensitivity` object.
 #' @importFrom ggplot2 autoplot
 #' @export
-autoplot.ivate_sensitivity <- function(object, type = c("auto", "threshold", "boundary"),
+autoplot.ivate_sensitivity <- function(object, type = c("auto", "threshold", "boundary", "comparisons"),
                                        range = NULL, ci = TRUE, n_grid = 101,
                                        label_tol = 0.03, ...) {
   type <- match.arg(type)
+  if (type == "comparisons") return(plot_comparisons(object))
   if (type == "auto") type <- if (is.null(object$target)) "boundary" else "threshold"
   if (type == "boundary" && object$setting != "two-sided") {
     stop("The boundary plot requires two-sided non-compliance.", call. = FALSE)

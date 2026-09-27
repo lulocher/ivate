@@ -27,10 +27,12 @@ Draws the potential outcome means by compliance type and treatment, in the
 layout of Figure 1 of Locher, Richardson, and Stensrud (2026), with the
 values of a sensitivity analysis filled in. Rows are \eqn{E[Y(1)]} and
 \eqn{E[Y(0)]}; columns are compliers, always-takers, and never-takers
-(types absent from the data are dropped). The unidentified sensitivity
-parameters are circled. Vertical arrows indicate within-type comparisons
-and curved arrows cross-type comparisons; arrows are dashed when they
-involve an unidentified quantity.
+(types absent from the data are dropped). Each position shows the value
+of the corresponding quantity; the unidentified sensitivity parameters sit
+at \eqn{E[Y(0)]} for always-takers and \eqn{E[Y(1)]} for never-takers.
+Vertical arrows indicate within-type comparisons and curved arrows
+cross-type comparisons; arrows are dashed when they involve an
+unidentified quantity.
 }
 \details{
 Quantities are coloured by their status:
@@ -40,7 +42,8 @@ Quantities are coloured by their status:
 to its least favourable value under a restriction (step 1 or 2 of the
 two-step strategy);
 \item \strong{implied} (red): the threshold \eqn{\tau} of the remaining sensitivity
-parameter. Without a restriction in the two-sided case, both sensitivity
+parameter, shown with the relation under which the decision criterion
+holds (e.g. "> 0.46"). Without a restriction in the two-sided case, both sensitivity
 parameters are implied and are shown with the estimated boundary
 \eqn{\mathcal{B}}.
 }

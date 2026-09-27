@@ -24,7 +24,7 @@ test_that("values are filled in from the analysis", {
   res <- ate_sensitivity(d, y ~ a | z, theta_A0 = 1, ci = FALSE)
   n <- comparison_nodes(res, ci = FALSE)
   expect_equal(n$value[n$id == "N1"], paste(">", fmt_num(res$threshold$estimate)))
-  expect_equal(n$value[n$id == "A0"], "= 1")
+  expect_equal(n$value[n$id == "A0"], "1")
   expect_equal(n$value[n$id == "C1"], fmt_num(res$q[["mu_C1"]]))
 
   # Unrestricted two-sided: boundary formula, drawn as plotmath

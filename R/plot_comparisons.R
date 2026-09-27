@@ -4,10 +4,12 @@
 #' layout of Figure 1 of Locher, Richardson, and Stensrud (2026), with the
 #' values of a sensitivity analysis filled in. Rows are \eqn{E[Y(1)]} and
 #' \eqn{E[Y(0)]}; columns are compliers, always-takers, and never-takers
-#' (types absent from the data are dropped). The unidentified sensitivity
-#' parameters are circled. Vertical arrows indicate within-type comparisons
-#' and curved arrows cross-type comparisons; arrows are dashed when they
-#' involve an unidentified quantity.
+#' (types absent from the data are dropped). Each position shows the value
+#' of the corresponding quantity; the unidentified sensitivity parameters sit
+#' at \eqn{E[Y(0)]} for always-takers and \eqn{E[Y(1)]} for never-takers.
+#' Vertical arrows indicate within-type comparisons and curved arrows
+#' cross-type comparisons; arrows are dashed when they involve an
+#' unidentified quantity.
 #'
 #' Quantities are coloured by their status:
 #' * **estimated** (green): identified potential outcome means;
@@ -15,7 +17,8 @@
 #'   to its least favourable value under a restriction (step 1 or 2 of the
 #'   two-step strategy);
 #' * **implied** (red): the threshold \eqn{\tau} of the remaining sensitivity
-#'   parameter. Without a restriction in the two-sided case, both sensitivity
+#'   parameter, shown with the relation under which the decision criterion
+#'   holds (e.g. "> 0.46"). Without a restriction in the two-sided case, both sensitivity
 #'   parameters are implied and are shown with the estimated boundary
 #'   \eqn{\mathcal{B}}.
 #'
@@ -63,12 +66,6 @@ plot_comparisons <- function(x, ci = FALSE,
   nodes$status  <- factor(nodes$status, levels = status_levels)
   arrows$status <- factor(arrows$status, levels = status_levels)
 
-  circles <- do.call(rbind, lapply(which(nodes$circled), function(i) {
-    t <- seq(0, 2 * pi, length.out = 100)
-    data.frame(id = nodes$id[i], status = nodes$status[i],
-               x = nodes$x[i] + nodes$rx[i] * cos(t), y = nodes$y[i] + node_ry * sin(t))
-  }))
-
   cols <- sort(unique(nodes$x))
   headers <- data.frame(x = cols, y = max(nodes$y) + 1.05,
                         label = type_headers[nodes$type[match(cols, nodes$x)]])
@@ -80,12 +77,6 @@ plot_comparisons <- function(x, ci = FALSE,
                        fontface = "bold", size = 4.5) +
     ggplot2::geom_text(data = rows, ggplot2::aes(x = .data$x, y = .data$y, label = .data$label),
                        parse = TRUE, size = 4.5)
-
-  if (!is.null(circles)) {
-    p <- p + ggplot2::geom_path(data = circles,
-      ggplot2::aes(x = .data$x, y = .data$y, group = .data$id, colour = .data$status),
-      linewidth = 0.6, show.legend = FALSE)
-  }
 
   arrow_head <- grid::arrow(length = grid::unit(2.5, "mm"), ends = "both", type = "closed")
   for (i in seq_len(nrow(arrows))) {
@@ -105,27 +96,25 @@ plot_comparisons <- function(x, ci = FALSE,
     }
   }
 
+  # Values (and intervals below them); the boundary formula is drawn as plotmath
+  value_dy    <- if (ci) 0.05 else 0
   value_plain <- nodes[!nodes$value_parse, , drop = FALSE]
   value_math  <- nodes[nodes$value_parse, , drop = FALSE]
   p <- p +
-    ggplot2::geom_text(data = nodes,
-      ggplot2::aes(x = .data$x, y = .data$y + 0.12, label = .data$name, colour = .data$status),
-      parse = TRUE, size = 4.5, show.legend = FALSE) +
     ggplot2::geom_text(data = value_plain,
-      ggplot2::aes(x = .data$x, y = .data$y - 0.07, label = .data$value, colour = .data$status),
-      size = 3.8, show.legend = FALSE)
+      ggplot2::aes(x = .data$x, y = .data$y + value_dy, label = .data$value, colour = .data$status),
+      size = 4.3, show.legend = FALSE)
   if (nrow(value_math) > 0) {
     p <- p + ggplot2::geom_text(data = value_math,
-      ggplot2::aes(x = .data$x, y = .data$y - 0.08, label = .data$value,
-                   colour = .data$status),
-      parse = TRUE, size = 3.2, show.legend = FALSE)
+      ggplot2::aes(x = .data$x, y = .data$y, label = .data$value, colour = .data$status),
+      parse = TRUE, size = 3.8, show.legend = FALSE)
   }
   if (ci) {
     ci_nodes <- nodes[nodes$ci_label != "", , drop = FALSE]
     if (nrow(ci_nodes) > 0) {
       p <- p + ggplot2::geom_text(data = ci_nodes,
-        ggplot2::aes(x = .data$x, y = .data$y - 0.185, label = .data$ci_label, colour = .data$status),
-        size = 2.8, show.legend = FALSE)
+        ggplot2::aes(x = .data$x, y = .data$y - 0.08, label = .data$ci_label, colour = .data$status),
+        size = 3.1, show.legend = FALSE)
     }
   }
 
@@ -148,8 +137,7 @@ plot_comparisons <- function(x, ci = FALSE,
 
 # -- Internal ------------------------------------------------------------------
 
-node_rx <- 0.36
-node_ry <- 0.28
+node_ry <- 0.17
 row_y   <- c("1" = 2.2, "0" = 1)
 type_headers <- c(C = "Compliers", A = "Always-takers", N = "Never-takers")
 
@@ -169,10 +157,10 @@ comparison_nodes <- function(x, ci) {
          ci = if (has_ci(r)) fmt_paren_ci(r$ci_lower, r$ci_upper) else "")
   }
   node <- function(key, type, arm, name, status, value, ci_label = "", circled = FALSE,
-                   value_parse = FALSE, rx = node_rx) {
+                   value_parse = FALSE) {
     data.frame(id = key, type = type, x = col_x[[type]], y = row_y[[arm]], name = name,
                status = status, value = value, ci_label = ci_label, circled = circled,
-               value_parse = value_parse, rx = rx, stringsAsFactors = FALSE)
+               value_parse = value_parse, stringsAsFactors = FALSE)
   }
 
   out <- list(
@@ -207,7 +195,7 @@ theta_node <- function(x, parameter, key, type, arm, name, node) {
   if (!is.null(x$fixed) && identical(x$fixed$parameter, parameter)) {
     f <- x$fixed
     ci_label <- if (has_ci(f) && !isTRUE(f$ci_lower == f$ci_upper)) fmt_paren_ci(f$ci_lower, f$ci_upper) else ""
-    return(node(key, type, arm, name, "assumed", paste("=", fmt_num(f$value)), ci_label, circled = TRUE))
+    return(node(key, type, arm, name, "assumed", fmt_num(f$value), ci_label, circled = TRUE))
   }
   # Two-sided without restriction: show the estimated boundary.
   b <- x$boundary[x$boundary$scale == "level" & x$boundary$lhs == parameter, ]
@@ -216,7 +204,7 @@ theta_node <- function(x, parameter, key, type, arm, name, node) {
   sign <- if (b$slope < 0) "-" else "+"
   formula <- sprintf('"%s " * "%s" %s "%s" %%.%% %s', b$relation, fmt_num(b$intercept), sign,
                      fmt_num(abs(b$slope)), rhs)
-  node(key, type, arm, name, "implied", formula, circled = TRUE, value_parse = TRUE, rx = 0.6)
+  node(key, type, arm, name, "implied", formula, circled = TRUE, value_parse = TRUE)
 }
 
 #' Arrows of the comparison roster (as in Figure 1 of the manuscript)

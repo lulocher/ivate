@@ -17,9 +17,8 @@ plot_comparisons(
 \item{ci}{Logical; show confidence (credible) intervals below the values?
 Defaults to \code{FALSE}.}
 
-\item{digits}{Number of decimals. Values that would round to zero are shown
-with as many decimals as needed for their first significant digit (e.g.
-0.0008 rather than 0.00). Defaults to \code{2}.}
+\item{digits}{Number of significant digits shown for all values (e.g.
+0.70, 0.011, 0.00084 with the default \code{2}).}
 
 \item{colours}{Named character vector with colours for \code{estimated},
 \code{assumed}, and \code{implied} quantities.}

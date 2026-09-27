@@ -29,9 +29,8 @@
 #' @param x An `ivate_sensitivity` object from [ate_sensitivity()].
 #' @param ci Logical; show confidence (credible) intervals below the values?
 #'   Defaults to `FALSE`.
-#' @param digits Number of decimals. Values that would round to zero are shown
-#'   with as many decimals as needed for their first significant digit (e.g.
-#'   0.0008 rather than 0.00). Defaults to `2`.
+#' @param digits Number of significant digits shown for all values (e.g.
+#'   0.70, 0.011, 0.00084 with the default `2`).
 #' @param colours Named character vector with colours for `estimated`,
 #'   `assumed`, and `implied` quantities.
 #'
@@ -59,8 +58,8 @@ plot_comparisons <- function(x, ci = FALSE, digits = 2,
   if (!inherits(x, "ivate_sensitivity")) {
     stop("`x` must be the result of ate_sensitivity().", call. = FALSE)
   }
-  if (!is.numeric(digits) || length(digits) != 1L || is.na(digits) || digits < 0) {
-    stop("`digits` must be a single non-negative number.", call. = FALSE)
+  if (!is.numeric(digits) || length(digits) != 1L || is.na(digits) || digits < 1) {
+    stop("`digits` must be a single number >= 1 (significant digits).", call. = FALSE)
   }
   if (!all(c("estimated", "assumed", "implied") %in% names(colours))) {
     stop("`colours` must be named `estimated`, `assumed`, and `implied`.", call. = FALSE)
@@ -270,15 +269,13 @@ fmt_paren_ci <- function(lower, upper, digits = 2) {
   paste0("(", fmt_digits(lower, digits), ", ", fmt_digits(upper, digits), ")")
 }
 
-#' Round to `digits` decimals, or to the first significant digit if the value
-#' would otherwise be shown as zero
+#' Format with `digits` significant digits, keeping trailing zeros (0.70)
 #' @keywords internal
 #' @noRd
 fmt_digits <- function(x, digits = 2) {
   vapply(x, function(v) {
     if (is.na(v)) return("NA")
-    d <- digits
-    if (v != 0 && round(v, d) == 0) d <- max(d, ceiling(-log10(abs(v))))
-    formatC(round(v, d), format = "f", digits = d)
+    out <- trimws(formatC(signif(v, digits), format = "fg", digits = digits, flag = "#"))
+    sub("\\.$", "", out)
   }, character(1), USE.NAMES = FALSE)
 }

@@ -81,6 +81,8 @@ plot_bayes_curve <- function(x, param, type) {
       ggplot2::geom_line(ggplot2::aes(y = .data$median), colour = "black", linewidth = 0.8) +
       ggplot2::geom_hline(yintercept = x$cutoff, colour = "black", linewidth = 0.8, alpha = 0.6) +
       ggplot2::geom_hline(yintercept = bounds, linetype = "dotted", colour = "gray30") +
+      # Zoom on the credible band; bound lines far outside it would flatten the curve.
+      ggplot2::coord_cartesian(ylim = range(c(g$band_lower, g$band_upper, x$cutoff))) +
       ggplot2::labs(y = "ATE")
   } else {
     p <- p +

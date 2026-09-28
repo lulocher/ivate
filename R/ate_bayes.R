@@ -229,7 +229,7 @@ bayes_specs <- function(setting, theta_A0, theta_N1) {
 ate_linear <- function(qd) {
   pA <- qd[, "pi_A"]; pN <- qd[, "pi_N"]
   list(
-    intercept = qd[, "pi_C"] * (qd[, "mu_C1"] - qd[, "mu_C0"]) +
+    intercept = qd[, "pimu_C1"] - qd[, "pimu_C0"] +
       ifelse(pA > 0, pA * qd[, "mu_A1"], 0) - ifelse(pN > 0, pN * qd[, "mu_N0"], 0),
     slope_A = -pA,
     slope_N = pN

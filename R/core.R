@@ -3,6 +3,11 @@
 # vector, see identified.R) so that they can be re-evaluated on every
 # bootstrap replicate.
 
+# Contribution of the compliers to the ATE, pi_C * LATE, written in terms of
+# the complier contributions so that it is defined when pi_C = 0 (it then
+# equals the intention-to-treat effect on the outcome).
+complier_term <- function(q) q[["pimu_C1"]] - q[["pimu_C0"]]
+
 # Contribution of a type with share `p` and effect `d`; zero when the type is
 # absent (its potential outcome means are then undefined).
 type_term <- function(p, d) if (isTRUE(p > 0)) p * d else rep(0, length(d))
@@ -12,7 +17,7 @@ type_term <- function(p, d) if (isTRUE(p > 0)) p * d else rep(0, length(d))
 #' @noRd
 ate_at <- function(q, theta_A0, theta_N1) {
   unname(
-    q[["pi_C"]] * (q[["mu_C1"]] - q[["mu_C0"]]) +
+    complier_term(q) +
       type_term(q[["pi_A"]], q[["mu_A1"]] - theta_A0) +
       type_term(q[["pi_N"]], theta_N1 - q[["mu_N0"]])
   )
@@ -25,7 +30,7 @@ ate_at <- function(q, theta_A0, theta_N1) {
 #' @noRd
 threshold_N1 <- function(q, cutoff, theta_A0 = NA_real_) {
   unname(
-    (cutoff - q[["pi_C"]] * (q[["mu_C1"]] - q[["mu_C0"]]) -
+    (cutoff - complier_term(q) -
        type_term(q[["pi_A"]], q[["mu_A1"]] - theta_A0) +
        q[["pi_N"]] * q[["mu_N0"]]) / q[["pi_N"]]
   )
@@ -38,7 +43,7 @@ threshold_N1 <- function(q, cutoff, theta_A0 = NA_real_) {
 #' @noRd
 threshold_A0 <- function(q, cutoff, theta_N1 = NA_real_) {
   unname(
-    (q[["pi_C"]] * (q[["mu_C1"]] - q[["mu_C0"]]) +
+    (complier_term(q) +
        q[["pi_A"]] * q[["mu_A1"]] +
        type_term(q[["pi_N"]], theta_N1 - q[["mu_N0"]]) - cutoff) / q[["pi_A"]]
   )
@@ -54,16 +59,16 @@ threshold_A0 <- function(q, cutoff, theta_N1 = NA_real_) {
 #' @keywords internal
 #' @noRd
 boundary_coefficients <- function(q, cutoff) {
-  late <- q[["mu_C1"]] - q[["mu_C0"]]
-  pC <- q[["pi_C"]]; pA <- q[["pi_A"]]; pN <- q[["pi_N"]]
+  cl <- complier_term(q)
+  pA <- q[["pi_A"]]; pN <- q[["pi_N"]]
   c(
-    level_N1_intercept  = (cutoff - pC * late - pA * q[["mu_A1"]] + pN * q[["mu_N0"]]) / pN,
+    level_N1_intercept  = (cutoff - cl - pA * q[["mu_A1"]] + pN * q[["mu_N0"]]) / pN,
     level_N1_slope      = pA / pN,
-    level_A0_intercept  = (pC * late + pA * q[["mu_A1"]] - pN * q[["mu_N0"]] - cutoff) / pA,
+    level_A0_intercept  = (cl + pA * q[["mu_A1"]] - pN * q[["mu_N0"]] - cutoff) / pA,
     level_A0_slope      = pN / pA,
-    effect_N_intercept  = (cutoff - pC * late) / pN,
+    effect_N_intercept  = (cutoff - cl) / pN,
     effect_N_slope      = -pA / pN,
-    effect_A_intercept  = (cutoff - pC * late) / pA,
+    effect_A_intercept  = (cutoff - cl) / pA,
     effect_A_slope      = -pN / pA
   )
 }

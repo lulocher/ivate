@@ -171,6 +171,10 @@ feasible_interval <- function(restrictions, parameter, q, y_range) {
     ri <- restriction_interval(r, parameter, q)
     interval <- c(max(interval[1], ri[1]), min(interval[2], ri[2]))
   }
+  if (anyNA(interval)) {
+    stop(sprintf(paste0("The restrictions on %s involve undefined quantities (e.g. complier ",
+                        "means without compliers)."), parameter), call. = FALSE)
+  }
   if (interval[1] > interval[2]) {
     stop(sprintf("The restrictions on %s are incompatible (empty feasible set).", parameter),
          call. = FALSE)

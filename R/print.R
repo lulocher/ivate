@@ -33,7 +33,7 @@ print_model_check <- function(x) {
   m <- x$model_check
   if (is.null(m) || identical(x$inference, "bayes")) return(invisible())
   rng <- paste0("[", fmt_num(m$y_range[1]), ", ", fmt_num(m$y_range[2]), "]")
-  labels <- c(pi_C = "pi_C > 0", mu_C0 = paste("mu_C0 in", rng), mu_C1 = paste("mu_C1 in", rng))
+  labels <- c(pi_C = "pi_C >= 0", mu_C0 = paste("mu_C0 in", rng), mu_C1 = paste("mu_C1 in", rng))
   sample_txt <- if (any(m$sample)) {
     paste("VIOLATED in the sample:", paste(labels[m$sample], collapse = "; "))
   } else {
@@ -58,8 +58,12 @@ print_header <- function(x, title) {
   cat(sprintf("  Setting:  %s (pi_C = %s, pi_A = %s, pi_N = %s)\n",
               setting_label(x$setting), fmt_num(shares[1]), fmt_num(shares[2]), fmt_num(shares[3])))
   late <- x$identified[x$identified$quantity == "late", ]
-  cat(sprintf("  LATE:     %s %s\n", fmt_num(late$estimate),
-              if (has_ci(late)) paste(ci_header(x$level, x$inference), fmt_ci(late$ci_lower, late$ci_upper)) else ""))
+  if (nrow(late) == 0) {
+    cat("  LATE:     undefined (no compliers)\n")
+  } else {
+    cat(sprintf("  LATE:     %s %s\n", fmt_num(late$estimate),
+                if (has_ci(late)) paste(ci_header(x$level, x$inference), fmt_ci(late$ci_lower, late$ci_upper)) else ""))
+  }
 }
 
 #' @export

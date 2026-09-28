@@ -158,6 +158,8 @@ comparison_nodes <- function(x, ci, digits = 2) {
   id <- x$identified
   est <- function(qty) {
     r <- id[id$quantity == qty, ]
+    # Complier means are undefined without compliers (pi_C = 0)
+    if (nrow(r) == 0) return(list(value = "undefined", ci = ""))
     list(value = fmt_digits(r$estimate, digits),
          ci = if (has_ci(r)) fmt_paren_ci(r$ci_lower, r$ci_upper, digits) else "")
   }

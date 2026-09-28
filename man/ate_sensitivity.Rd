@@ -149,8 +149,14 @@ posterior medians and intervals are equal-tailed credible intervals. The
 posterior probability that the IV inequalities are violated is reported as
 a model check. Call \code{\link[=set.seed]{set.seed()}} beforehand for reproducible intervals.
 
+\strong{Relevance.} Thresholds, boundaries, bounds, and the ATE depend on the
+compliers only through \eqn{\pi_C \mu_C^{(1)}} and \eqn{\pi_C \mu_C^{(0)}},
+which remain identified without compliers. The procedures therefore also
+apply when \eqn{\pi_C = 0}; the complier means, the LATE, and comparisons
+involving them are then undefined (\code{NA}), and a warning is issued.
+
 \strong{Model check.} In finite samples, the plug-in estimates can violate the
-testable restrictions of the IV model (\eqn{\pi_C > 0} and complier means
+testable restrictions of the IV model (\eqn{\pi_C \ge 0} and complier means
 within the outcome range; for binary outcomes these are the inequalities
 (11)-(13) of Richardson, Evans, and Robins, 2011), yielding values
 incompatible with the model. This is checked in the original sample (with

@@ -26,7 +26,7 @@ test_that("data validation catches common problems", {
   expect_error(ate_bounds(transform(d, z = z + 1), y ~ a | z), "instrument 'z' must be binary")
   expect_error(ate_bounds(transform(d, a = ifelse(a == 1, "yes", "no")), y ~ a | z),
                "cannot be coerced")
-  expect_error(ate_bounds(transform(d, z = 1 - z), y ~ a | z), "recoding")
+  expect_warning(ate_bounds(transform(d, z = 1 - z), y ~ a | z, ci = FALSE), "recode")
   expect_error(ate_bounds(d, y ~ a | z, y_range = c(0.2, 0.5), ci = FALSE), "outside")
 
   d_na <- d

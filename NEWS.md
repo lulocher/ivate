@@ -30,10 +30,16 @@ First public version, aligned with Locher, Richardson, and Stensrud (2026).
 
 * Model check for plug-in inference: `ate_sensitivity()` and `ate_bounds()`
   check whether the plug-in estimates violate the IV model restrictions
-  (pi_C > 0, complier means within the outcome range; inequalities (11)-(13)
+  (pi_C >= 0, complier means within the outcome range; inequalities (11)-(13)
   of Richardson, Evans, and Robins (2011) for binary outcomes) in the
   original sample and report the share of violating bootstrap samples
   (`$model_check`), warning if it exceeds 5%.
+
+* Relevance is not required: all computations use the complier
+  contributions pi_C * mu_C^(a), so thresholds, boundaries, and bounds are
+  also available when pi_C = 0 (complier means and LATE are then `NA`). A
+  negative estimated share of compliers is reported as a model violation
+  (warning) instead of an error.
 
 ## Other
 

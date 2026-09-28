@@ -21,7 +21,8 @@ manual_q <- function(d) {
     y0_nt <- if (p_nt > 0) mean(y[a == 0 & z == 1]) else NA
     y1_c <- (mean(a[z == 1]) * mean(y[a == 1 & z == 1]) - ifelse(p_at > 0, p_at * y1_at, 0)) / p_c
     y0_c <- ((1 - mean(a[z == 0])) * mean(y[a == 0 & z == 0]) - ifelse(p_nt > 0, p_nt * y0_nt, 0)) / p_c
-    c(pi_C = p_c, pi_A = p_at, pi_N = p_nt, mu_C0 = y0_c, mu_C1 = y1_c, mu_A1 = y1_at, mu_N0 = y0_nt)
+    c(pi_C = p_c, pi_A = p_at, pi_N = p_nt, mu_C0 = y0_c, mu_C1 = y1_c, mu_A1 = y1_at, mu_N0 = y0_nt,
+      pimu_C0 = p_c * y0_c, pimu_C1 = p_c * y1_c)
   })
 }
 

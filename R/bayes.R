@@ -71,9 +71,11 @@ q_from_probs <- function(P0, P1) {
   pi_C <- 1 - pi_A - pi_N
   mu_A1 <- ifelse(pi_A > 0, P0[, 4] / pi_A, NA_real_)
   mu_N0 <- ifelse(pi_N > 0, P1[, 2] / pi_N, NA_real_)
-  mu_C1 <- (P1[, 4] - P0[, 4]) / pi_C
-  mu_C0 <- (P0[, 2] - P1[, 2]) / pi_C
-  out <- cbind(pi_C, pi_A, pi_N, mu_C0, mu_C1, mu_A1, mu_N0)
+  pimu_C1 <- P1[, 4] - P0[, 4]
+  pimu_C0 <- P0[, 2] - P1[, 2]
+  mu_C1 <- ifelse(pi_C > 0, pimu_C1 / pi_C, NA_real_)
+  mu_C0 <- ifelse(pi_C > 0, pimu_C0 / pi_C, NA_real_)
+  out <- cbind(pi_C, pi_A, pi_N, mu_C0, mu_C1, mu_A1, mu_N0, pimu_C0, pimu_C1)
   colnames(out) <- q_names
   out
 }

@@ -1,7 +1,11 @@
 test_that("restriction violations are detected per restriction", {
-  q_ok  <- c(pi_C = 0.3, pi_A = 0.1, pi_N = 0.6, mu_C0 = 0.4, mu_C1 = 0.6, mu_A1 = 0.5, mu_N0 = 0.2)
-  q_bad <- replace(q_ok, c("mu_C0", "mu_C1"), c(-0.1, 0.5))
-  q_pic <- replace(q_ok, "pi_C", -0.01)
+  mk <- function(pi_C, mu_C0, mu_C1) {
+    c(pi_C = pi_C, pi_A = 0.1, pi_N = 0.6, mu_C0 = mu_C0, mu_C1 = mu_C1, mu_A1 = 0.5, mu_N0 = 0.2,
+      pimu_C0 = pi_C * mu_C0, pimu_C1 = pi_C * mu_C1)
+  }
+  q_ok  <- mk(0.3, 0.4, 0.6)
+  q_bad <- mk(0.3, -0.1, 0.5)
+  q_pic <- mk(-0.01, 0.4, 0.6)
   v <- iv_restriction_violations(rbind(q_ok, q_bad, q_pic), c(0, 1))
   expect_equal(unname(v[1, ]), c(FALSE, FALSE, FALSE))
   expect_equal(unname(v[2, ]), c(FALSE, TRUE, FALSE))

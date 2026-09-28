@@ -51,8 +51,14 @@
 #' posterior probability that the IV inequalities are violated is reported as
 #' a model check. Call [set.seed()] beforehand for reproducible intervals.
 #'
+#' **Relevance.** Thresholds, boundaries, bounds, and the ATE depend on the
+#' compliers only through \eqn{\pi_C \mu_C^{(1)}} and \eqn{\pi_C \mu_C^{(0)}},
+#' which remain identified without compliers. The procedures therefore also
+#' apply when \eqn{\pi_C = 0}; the complier means, the LATE, and comparisons
+#' involving them are then undefined (`NA`), and a warning is issued.
+#'
 #' **Model check.** In finite samples, the plug-in estimates can violate the
-#' testable restrictions of the IV model (\eqn{\pi_C > 0} and complier means
+#' testable restrictions of the IV model (\eqn{\pi_C \ge 0} and complier means
 #' within the outcome range; for binary outcomes these are the inequalities
 #' (11)-(13) of Richardson, Evans, and Robins, 2011), yielding values
 #' incompatible with the model. This is checked in the original sample (with
@@ -339,7 +345,7 @@ split_stat_table <- function(tab) {
 #' @noRd
 identified_table <- function(q, draws, level, center = "plugin") {
   tab <- evaluate_stat(function(q) c(q, late = q[["mu_C1"]] - q[["mu_C0"]]), q, draws, level, center)
-  tab <- tab[!is.na(tab$estimate), , drop = FALSE]
+  tab <- tab[!is.na(tab$estimate) & !tab$term %in% c("pimu_C0", "pimu_C1"), , drop = FALSE]
   data.frame(quantity = tab$term, description = unname(q_descriptions[tab$term]),
              tab[, -1, drop = FALSE], row.names = NULL, stringsAsFactors = FALSE)
 }

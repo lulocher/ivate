@@ -108,7 +108,7 @@ test_that("bootstrap confidence intervals are returned and cover the estimate", 
   set.seed(2)
   d <- sim_iv()
   res <- ate_sensitivity(d, y ~ a | z, theta_A0 = restrict_effect(lower = 0), n_boot = 200)
-  expect_equal(dim(res$draws), c(200, 7))
+  expect_equal(dim(res$draws), c(200, 9))
   t <- res$threshold
   expect_true(t$ci_lower < t$estimate && t$estimate < t$ci_upper)
   # The least favourable value depends on mu_A1 and hence has a CI

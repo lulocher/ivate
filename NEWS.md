@@ -28,6 +28,13 @@ First public version, aligned with Locher, Richardson, and Stensrud (2026).
   parameters, or under priors on them (`prior_beta()`, `prior_uniform()`,
   `prior_normal()`).
 
+* Model check for plug-in inference: `ate_sensitivity()` and `ate_bounds()`
+  check whether the plug-in estimates violate the IV model restrictions
+  (pi_C > 0, complier means within the outcome range; inequalities (11)-(13)
+  of Richardson, Evans, and Robins (2011) for binary outcomes) in the
+  original sample and report the share of violating bootstrap samples
+  (`$model_check`), warning if it exceeds 5%.
+
 ## Other
 
 * `plot()` methods reproduce Figure 2 of the manuscript and Figures 3 and 5

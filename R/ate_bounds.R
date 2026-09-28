@@ -45,6 +45,9 @@
 #'     \item{`feasible`}{Data frame with the feasible interval for each
 #'       sensitivity parameter and a description of the restrictions.}
 #'     \item{`identified`}{Data frame of identified quantities.}
+#'     \item{`model_check`}{Violations of the IV model restrictions in the
+#'       original sample and the share of bootstrap samples violating them;
+#'       see the section "Model check" in [ate_sensitivity()].}
 #'   }
 #'   together with the inputs.
 #'
@@ -119,6 +122,7 @@ ate_bounds <- function(data, formula,
 
   unc    <- uncertainty_draws(d, setting, ci, inference, n_boot, boot_strata, n_draws, prior_obs)
   draws  <- unc$draws
+  mcheck <- model_check(q, if (inference == "bootstrap") draws else NULL, y_range, is_binary(d$y))
   center <- if (inference == "bayes") "median" else "plugin"
 
   restricted   <- evaluate_stat(bounds_stat_fun(restr_A, restr_N, y_range), q, draws, level, center)
@@ -150,6 +154,7 @@ ate_bounds <- function(data, formula,
     draws        = draws,
     inference    = inference,
     bayes        = unc$bayes,
+    model_check  = mcheck,
     level        = level
   ), class = "ivate_bounds")
 }

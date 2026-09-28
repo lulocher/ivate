@@ -29,6 +29,27 @@ print_bayes_info <- function(x) {
   invisible()
 }
 
+print_model_check <- function(x) {
+  m <- x$model_check
+  if (is.null(m) || identical(x$inference, "bayes")) return(invisible())
+  rng <- paste0("[", fmt_num(m$y_range[1]), ", ", fmt_num(m$y_range[2]), "]")
+  labels <- c(pi_C = "pi_C > 0", mu_C0 = paste("mu_C0 in", rng), mu_C1 = paste("mu_C1 in", rng))
+  sample_txt <- if (any(m$sample)) {
+    paste("VIOLATED in the sample:", paste(labels[m$sample], collapse = "; "))
+  } else {
+    "satisfied in the sample"
+  }
+  boot_txt <- ""
+  if (!is.null(m$bootstrap)) {
+    pct <- function(p) paste0(fmt_num(100 * p), "%")
+    b <- m$bootstrap
+    boot_txt <- sprintf("; violated in %s of %d bootstrap samples [pi_C: %s, mu_C0: %s, mu_C1: %s]",
+                        pct(b[["any"]]), m$n_boot, pct(b[["pi_C"]]), pct(b[["mu_C0"]]), pct(b[["mu_C1"]]))
+  }
+  cat(sprintf("  Model check: IV restrictions %s%s\n", sample_txt, boot_txt))
+  invisible()
+}
+
 print_header <- function(x, title) {
   cat(title, "\n\n", sep = "")
   cat(sprintf("  Model:    %s ~ %s | %s  (n = %d)\n",
@@ -47,6 +68,7 @@ print.ivate_sensitivity <- function(x, ...) {
   rel <- if (x$direction == "greater") ">" else "<"
   cat(sprintf("  Criterion: ATE %s %s\n", rel, fmt_num(x$cutoff)))
   print_bayes_info(x)
+  print_model_check(x)
 
   if (!is.null(x$boundary)) {
     cat("\nBoundary B (ATE = ", fmt_num(x$cutoff), "); the criterion holds iff:\n", sep = "")
@@ -100,6 +122,7 @@ has_ci_cols <- function(tab, prefix) paste0(prefix, "_ci_lower") %in% names(tab)
 print.ivate_bounds <- function(x, ...) {
   print_header(x, "Bounds on the ATE with an instrumental variable")
   print_bayes_info(x)
+  print_model_check(x)
 
   cat("\nFeasible sets:\n")
   for (i in seq_len(nrow(x$feasible))) {

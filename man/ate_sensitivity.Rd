@@ -89,6 +89,9 @@ the identified quantities, or \code{NULL}.}
 \item{\code{bayes}}{For Bayesian inference, the prior settings and the
 posterior probabilities that the IV inequalities (11)-(13) of
 Richardson, Evans, and Robins (2011) are violated.}
+\item{\code{model_check}}{Violations of the IV model restrictions in the
+original sample (\code{sample}, logical) and the share of bootstrap
+samples violating each restriction (\code{bootstrap}); see Details.}
 }
 together with the inputs. Use \link[=plot.ivate_sensitivity]{plot()} to
 visualise the result.
@@ -145,6 +148,17 @@ IV assumptions (Richardson, Evans, and Robins, 2011); estimates are
 posterior medians and intervals are equal-tailed credible intervals. The
 posterior probability that the IV inequalities are violated is reported as
 a model check. Call \code{\link[=set.seed]{set.seed()}} beforehand for reproducible intervals.
+
+\strong{Model check.} In finite samples, the plug-in estimates can violate the
+testable restrictions of the IV model (\eqn{\pi_C > 0} and complier means
+within the outcome range; for binary outcomes these are the inequalities
+(11)-(13) of Richardson, Evans, and Robins, 2011), yielding values
+incompatible with the model. This is checked in the original sample (with
+a warning) and in every bootstrap sample; the share of violating bootstrap
+samples is reported and a warning is issued if it exceeds 5 percent, in which
+case the bootstrap intervals may be unreliable. A violation in the sample
+may indicate that the IV assumptions fail, but can also arise from sampling
+variability, e.g. with weak instruments, rare outcomes, or small samples.
 }
 \examples{
 set.seed(1)

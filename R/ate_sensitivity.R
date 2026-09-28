@@ -51,6 +51,17 @@
 #' posterior probability that the IV inequalities are violated is reported as
 #' a model check. Call [set.seed()] beforehand for reproducible intervals.
 #'
+#' **Model check.** In finite samples, the plug-in estimates can violate the
+#' testable restrictions of the IV model (\eqn{\pi_C > 0} and complier means
+#' within the outcome range; for binary outcomes these are the inequalities
+#' (11)-(13) of Richardson, Evans, and Robins, 2011), yielding values
+#' incompatible with the model. This is checked in the original sample (with
+#' a warning) and in every bootstrap sample; the share of violating bootstrap
+#' samples is reported and a warning is issued if it exceeds 5 percent, in which
+#' case the bootstrap intervals may be unreliable. A violation in the sample
+#' may indicate that the IV assumptions fail, but can also arise from sampling
+#' variability, e.g. with weak instruments, rare outcomes, or small samples.
+#'
 #' @param data A data frame.
 #' @param formula A formula `outcome ~ treatment | instrument` (or a string).
 #'   Treatment and instrument must be binary (0/1), with the instrument
@@ -105,6 +116,9 @@
 #'     \item{`bayes`}{For Bayesian inference, the prior settings and the
 #'       posterior probabilities that the IV inequalities (11)-(13) of
 #'       Richardson, Evans, and Robins (2011) are violated.}
+#'     \item{`model_check`}{Violations of the IV model restrictions in the
+#'       original sample (`sample`, logical) and the share of bootstrap
+#'       samples violating each restriction (`bootstrap`); see Details.}
 #'   }
 #'   together with the inputs. Use [plot()][plot.ivate_sensitivity()] to
 #'   visualise the result.
@@ -187,6 +201,7 @@ ate_sensitivity <- function(data, formula,
 
   unc    <- uncertainty_draws(d, setting, ci, inference, n_boot, boot_strata, n_draws, prior_obs)
   draws  <- unc$draws
+  mcheck <- model_check(q, if (inference == "bootstrap") draws else NULL, y_range, is_binary(d$y))
   center <- if (inference == "bayes") "median" else "plugin"
 
   identified <- identified_table(q, draws, level, center)
@@ -246,6 +261,7 @@ ate_sensitivity <- function(data, formula,
     draws        = draws,
     inference    = inference,
     bayes        = unc$bayes,
+    model_check  = mcheck,
     level        = level
   ), class = "ivate_sensitivity")
 }

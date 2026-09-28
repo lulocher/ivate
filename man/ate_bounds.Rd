@@ -68,6 +68,9 @@ and their confidence intervals.}
 \item{\code{feasible}}{Data frame with the feasible interval for each
 sensitivity parameter and a description of the restrictions.}
 \item{\code{identified}}{Data frame of identified quantities.}
+\item{\code{model_check}}{Violations of the IV model restrictions in the
+original sample and the share of bootstrap samples violating them;
+see the section "Model check" in \code{\link[=ate_sensitivity]{ate_sensitivity()}}.}
 }
 together with the inputs.
 }

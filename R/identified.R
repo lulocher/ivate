@@ -97,8 +97,9 @@ iv_setting <- function(q) {
 #' Sanity checks on the identified quantities
 #'
 #' Errors if the instrument is not relevant in the assumed direction and warns
-#' if identified means fall outside the outcome range, which is evidence
-#' against the IV assumptions (in particular monotonicity or exclusion).
+#' if the plug-in estimates violate the IV model restrictions (identified
+#' means outside the outcome range). This may indicate that the IV
+#' assumptions fail, but can also arise from sampling variability.
 #' @keywords internal
 #' @noRd
 check_identified <- function(q, y_range) {
@@ -113,10 +114,65 @@ check_identified <- function(q, y_range) {
   outside <- means < y_range[1] | means > y_range[2]
   if (any(outside)) {
     warning(sprintf(paste0(
-      "Identified mean(s) outside the outcome range [%s, %s]: %s. ",
-      "This is evidence against the IV assumptions (e.g. monotonicity)."),
+      "The plug-in estimates violate the IV model restrictions: identified mean(s) ",
+      "outside the outcome range [%s, %s]: %s. This may indicate that the IV ",
+      "assumptions fail, but can also arise from sampling variability (e.g. a weak ",
+      "instrument, a rare outcome, or a small sample)."),
       fmt_num(y_range[1]), fmt_num(y_range[2]),
       paste(names(means)[outside], collapse = ", ")), call. = FALSE)
   }
   invisible(q)
 }
+
+#' Violations of the IV model restrictions
+#'
+#' Under the IV assumptions, the observed-data distribution must imply a
+#' positive share of compliers and complier means within the outcome range.
+#' For binary outcomes these are the inequalities (11)-(13) of Richardson,
+#' Evans, and Robins (2011) characterising the IV model; for other outcomes
+#' they are necessary conditions. Plug-in estimates can violate them in
+#' finite samples (e.g. with weak instruments, rare outcomes, or small
+#' samples), yielding values incompatible with the model.
+#'
+#' @param qmat Matrix (one row per sample or draw) or vector of identified
+#'   quantities.
+#' @param y_range Outcome range.
+#' @return A logical matrix with one column per restriction; `TRUE` means
+#'   violated.
+#' @keywords internal
+#' @noRd
+iv_restriction_violations <- function(qmat, y_range) {
+  if (is.null(dim(qmat))) qmat <- matrix(qmat, 1, dimnames = list(NULL, names(qmat)))
+  tol <- 1e-12
+  outside <- function(m) is.na(m) | m < y_range[1] - tol | m > y_range[2] + tol
+  cbind(
+    pi_C  = !(is.finite(qmat[, "pi_C"]) & qmat[, "pi_C"] > 0),
+    mu_C0 = outside(qmat[, "mu_C0"]),
+    mu_C1 = outside(qmat[, "mu_C1"])
+  )
+}
+
+#' Check the IV model restrictions in the sample and across bootstrap samples
+#'
+#' @return A list with the violations in the original sample (`sample`,
+#'   logical) and, if bootstrap replicates are supplied, the share of
+#'   replicates violating each restriction and any of them (`bootstrap`).
+#' @keywords internal
+#' @noRd
+model_check <- function(q, boot = NULL, y_range, binary = FALSE, warn_share = 0.05) {
+  out <- list(sample = iv_restriction_violations(q, y_range)[1, ], y_range = y_range)
+  if (!is.null(boot)) {
+    v <- iv_restriction_violations(boot, y_range)
+    out$bootstrap <- c(colMeans(v), any = mean(apply(v, 1, any)))
+    out$n_boot <- nrow(boot)
+    if (out$bootstrap[["any"]] > warn_share) {
+      warning(sprintf(paste0(
+        "%s%% of bootstrap samples violate the IV model restrictions (pi_C > 0, complier ",
+        "means within the outcome range); the bootstrap intervals may be unreliable.%s"),
+        fmt_num(100 * out$bootstrap[["any"]]),
+        if (binary) " Consider inference = \"bayes\"." else ""), call. = FALSE)
+    }
+  }
+  out
+}
+

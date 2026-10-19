@@ -55,8 +55,9 @@ of \code{range} are merged.}
 A \code{ggplot} object.
 }
 \description{
-Visualises the result of \code{\link[=ate_sensitivity]{ate_sensitivity()}} in the style of Figure 2 of
-Locher, Richardson, and Stensrud (2026).
+Visualises the result of \code{\link[=ate_sensitivity]{ate_sensitivity()}} in the style of the
+threshold and boundary plots of the examples in Locher, Richardson, and
+Stensrud (2026).
 }
 \details{
 \itemize{

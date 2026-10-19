@@ -2,7 +2,8 @@
 #'
 #' Draws the potential outcome means by compliance type and treatment, in the
 #' layout of Figure 1 of Locher, Richardson, and Stensrud (2026), with the
-#' values of a sensitivity analysis filled in. Rows are \eqn{E[Y(1)]} and
+#' values of a sensitivity analysis filled in (as in the figures of its
+#' examples). Rows are \eqn{E[Y(1)]} and
 #' \eqn{E[Y(0)]}; columns are compliers, always-takers, and never-takers
 #' (types absent from the data are dropped). Each position shows the value
 #' of the corresponding quantity; the unidentified sensitivity parameters sit

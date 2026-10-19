@@ -1,7 +1,8 @@
 #' Plot a sensitivity analysis
 #'
-#' Visualises the result of [ate_sensitivity()] in the style of Figure 2 of
-#' Locher, Richardson, and Stensrud (2026).
+#' Visualises the result of [ate_sensitivity()] in the style of the
+#' threshold and boundary plots of the examples in Locher, Richardson, and
+#' Stensrud (2026).
 #'
 #' * **Threshold plot** (one-sided non-compliance, or two-sided with one
 #'   parameter restricted): the ATE as a function of the remaining
@@ -189,7 +190,7 @@ sensitivity_theme <- function() {
     )
 }
 
-#' ATE as a function of the target parameter (Figure 2a)
+#' ATE as a function of the target parameter (threshold plot)
 #' @keywords internal
 #' @noRd
 plot_threshold <- function(x, range, draws, n_grid, label_tol) {
@@ -247,7 +248,7 @@ plot_threshold <- function(x, range, draws, n_grid, label_tol) {
     sensitivity_theme()
 }
 
-#' ATE heatmap with the boundary B (Figure 2b)
+#' ATE heatmap with the boundary B (boundary plot)
 #' @keywords internal
 #' @noRd
 plot_boundary <- function(x, range, draws, n_grid, label_tol) {

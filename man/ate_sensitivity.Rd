@@ -105,11 +105,11 @@ control among always-takers, and \eqn{\theta_N^{(1)} = E[Y(1) \mid N]}, the
 mean potential outcome under treatment among never-takers. This function
 derives the values of these sensitivity parameters at which the decision
 criterion \eqn{\Psi_{ATE} > x} (or \eqn{\Psi_{ATE} < x}) switches, and
-expresses them as implied comparisons with identified quantities (Section
-2.4 of Locher, Richardson, and Stensrud, 2026).
+expresses them as implied comparisons with identified quantities (Locher,
+Richardson, and Stensrud, 2026).
 }
 \details{
-The ATE decomposes as (equation (7))
+The ATE decomposes as
 \deqn{\Psi_{ATE} = \pi_C(\mu_C^{(1)} - \mu_C^{(0)})
   + \pi_A(\mu_A^{(1)} - \theta_A^{(0)})
   + \pi_N(\theta_N^{(1)} - \mu_N^{(0)}),}
@@ -118,13 +118,13 @@ are identified.
 
 \strong{One-sided non-compliance.} If only never-takers (or only always-takers)
 are present, a single scalar threshold \eqn{\tau} fully characterises the
-decision problem (equation (10)).
+decision problem.
 
 \strong{Two-sided non-compliance.} The criterion defines a half-plane in
 \eqn{(\theta_A^{(0)}, \theta_N^{(1)})}; its boundary \eqn{\mathcal{B}} is
 returned both on the level scale and on the scale of the implied
-type-specific treatment effects (equations (8) and (9)). Following the
-two-step strategy of Section 3.2, one of the two parameters can be
+type-specific treatment effects. Following the two-step strategy of the
+manuscript's second example, one of the two parameters can be
 restricted via \code{theta_A0} or \code{theta_N1}: the threshold for the other
 parameter is then evaluated at the least favourable value within the
 restriction. For instance, \code{theta_A0 = 1} fixes
@@ -136,12 +136,13 @@ non-negative effect among always-takers, whose least favourable value is
 \strong{Implied comparisons.} At the threshold, the implied treatment effect
 and ratio within the unidentified type and the implied outcome
 heterogeneity relative to compliers are reported, each next to an
-identified benchmark (Figure 1 of the manuscript). Ratios are only
+identified benchmark (as in the comparison figure of the manuscript).
+Ratios are only
 reported for non-negative outcomes.
 
 \strong{Inference.} With \code{inference = "bootstrap"} (default), estimates are
 plug-in estimates and intervals are percentile intervals from the
-nonparametric bootstrap (Section 2.6). With \code{inference = "bayes"} (binary
+nonparametric bootstrap. With \code{inference = "bayes"} (binary
 outcomes only), the identified part of the model is given a Dirichlet prior
 on \eqn{p(y, a \mid z)} restricted to the distributions compatible with the
 IV assumptions (Richardson, Evans, and Robins, 2011); estimates are

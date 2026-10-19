@@ -1,7 +1,7 @@
 #' Plot the roster of identified, assumed, and implied quantities
 #'
 #' Draws the potential outcome means by compliance type and treatment, in the
-#' layout of Figure 1 of Locher, Richardson, and Stensrud (2026), with the
+#' layout of the comparison figure of Locher, Richardson, and Stensrud (2026), with the
 #' values of a sensitivity analysis filled in (as in the figures of its
 #' examples). Rows are \eqn{E[Y(1)]} and
 #' \eqn{E[Y(0)]}; columns are compliers, always-takers, and never-takers
@@ -215,7 +215,7 @@ theta_node <- function(x, parameter, key, type, arm, name, node, digits = 2) {
   node(key, type, arm, name, "implied", formula, circled = TRUE, value_parse = TRUE)
 }
 
-#' Arrows of the comparison roster (as in Figure 1 of the manuscript)
+#' Arrows of the comparison roster (as in the comparison figure of the manuscript)
 #' @keywords internal
 #' @noRd
 comparison_arrows <- function(nodes) {

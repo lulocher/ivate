@@ -62,7 +62,7 @@ rdirichlet_cells <- function(n, alpha, structural) {
 
 #' Identified quantities from cell probabilities (vectorised over draws)
 #' @param P0,P1 n x 4 matrices of p(a, y | z = 0) and p(a, y | z = 1).
-#' @return An n x 7 matrix with columns `q_names`.
+#' @return A matrix with one row per draw and columns `q_names`.
 #' @keywords internal
 #' @noRd
 q_from_probs <- function(P0, P1) {

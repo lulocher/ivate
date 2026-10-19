@@ -1,4 +1,5 @@
-# Identified quantities under the IV assumptions (1)-(5) of the manuscript.
+# Identified quantities under the standard IV assumptions (consistency,
+# independence, exclusion restriction, monotonicity, relevance).
 #
 # Internally, the identified quantities are stored as a named numeric vector
 #   q = c(pi_C, pi_A, pi_N, mu_C0, mu_C1, mu_A1, mu_N0, pimu_C0, pimu_C1)
@@ -43,8 +44,8 @@ cell_stats <- function(y, g) {
 
 #' Identified quantities from cell counts and outcome sums
 #'
-#' Implements the identification results in Appendix A of Locher, Richardson,
-#' and Stensrud (2026):
+#' Implements the identification results in the appendix of Locher,
+#' Richardson, and Stensrud (2026):
 #' \eqn{\pi_A = P(A = 1 \mid Z = 0)}, \eqn{\pi_N = P(A = 0 \mid Z = 1)},
 #' \eqn{\mu_A^{(1)} = E[Y \mid A = 1, Z = 0]},
 #' \eqn{\mu_N^{(0)} = E[Y \mid A = 0, Z = 1]}, and the complier means are

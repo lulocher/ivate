@@ -3,7 +3,7 @@
 #' Propagates restrictions on the unidentified quantities
 #' \eqn{\theta_A^{(0)} = E[Y(0) \mid A]} and
 #' \eqn{\theta_N^{(1)} = E[Y(1) \mid N]} into bounds on the average treatment
-#' effect (Section 2.5 of Locher, Richardson, and Stensrud, 2026).
+#' effect (Locher, Richardson, and Stensrud, 2026).
 #'
 #' Each restriction translates into an interval for the corresponding
 #' sensitivity parameter; restrictions can be stated directly on the
@@ -12,15 +12,16 @@
 #' [restrictions]). The feasible set is the intersection of these intervals
 #' with the outcome range. Since the ATE is decreasing in
 #' \eqn{\theta_A^{(0)}} and increasing in \eqn{\theta_N^{(1)}}, the bounds are
-#' obtained at the corners of the feasible set (equation (11)):
+#' obtained at the corners of the feasible set:
 #' \deqn{\Psi_{ATE} \in [\Psi_{ATE}(u_A, \ell_N),\ \Psi_{ATE}(\ell_A, u_N)].}
 #'
 #' Without restrictions and with a binary outcome, the bounds coincide with
-#' the Balke-Pearl bounds under monotonicity (Appendix B of the manuscript);
+#' the Balke-Pearl bounds under monotonicity (see the appendix of the
+#' manuscript);
 #' these unrestricted bounds are always reported for comparison.
 #'
 #' Confidence intervals for each bound are percentile intervals from the
-#' nonparametric bootstrap (Section 2.6); restrictions that depend on
+#' nonparametric bootstrap; restrictions that depend on
 #' identified quantities (e.g. `restrict_effect(lower = ~ late)`) are
 #' re-evaluated in every replicate. With `inference = "bayes"` (binary
 #' outcomes only), bounds are summarised by posterior medians and credible

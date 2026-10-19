@@ -114,7 +114,7 @@ fmt_num <- function(x, digits = 3) {
   trimws(out)
 }
 
-#' Format a confidence interval as "(lower, upper)" in square brackets
+#' Format a confidence interval as "[lower, upper]"
 #' @keywords internal
 #' @noRd
 fmt_ci <- function(lower, upper) {

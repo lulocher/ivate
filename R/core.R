@@ -1,5 +1,5 @@
-# Closed-form expressions from Section 2 of Locher, Richardson, and Stensrud
-# (2026). All functions take the identified quantities `q` (a named numeric
+# Closed-form expressions from Locher, Richardson, and Stensrud (2026). All
+# functions take the identified quantities `q` (a named numeric
 # vector, see identified.R) so that they can be re-evaluated on every
 # bootstrap replicate.
 
@@ -12,7 +12,7 @@ complier_term <- function(q) q[["pimu_C1"]] - q[["pimu_C0"]]
 # absent (its potential outcome means are then undefined).
 type_term <- function(p, d) if (isTRUE(p > 0)) p * d else rep(0, length(d))
 
-#' ATE as a function of the sensitivity parameters, equation (7)
+#' ATE as a function of the sensitivity parameters (the ATE decomposition)
 #' @keywords internal
 #' @noRd
 ate_at <- function(q, theta_A0, theta_N1) {
@@ -23,7 +23,7 @@ ate_at <- function(q, theta_A0, theta_N1) {
   )
 }
 
-#' Threshold on theta_N1 at which ATE = cutoff, equations (9) and (10)
+#' Threshold on theta_N1 at which ATE = cutoff (two- and one-sided case)
 #'
 #' `theta_A0` is ignored when there are no always-takers.
 #' @keywords internal
@@ -36,7 +36,7 @@ threshold_N1 <- function(q, cutoff, theta_A0 = NA_real_) {
   )
 }
 
-#' Threshold on theta_A0 at which ATE = cutoff, equation (8)
+#' Threshold on theta_A0 at which ATE = cutoff
 #'
 #' `theta_N1` is ignored when there are no never-takers.
 #' @keywords internal
@@ -85,7 +85,7 @@ least_favourable <- function(interval, parameter, direction) {
   if (upper_end) interval[2] else interval[1]
 }
 
-#' Implied comparisons at a threshold value (Section 2.4, Figure 1)
+#' Implied comparisons at a threshold value (as in the comparison figure of the manuscript)
 #'
 #' For theta_N1 = tau: the implied effect among never-takers, the implied
 #' ratio, and the implied heterogeneity between never-takers and compliers

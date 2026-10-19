@@ -45,8 +45,8 @@ First public version, aligned with Locher, Richardson, and Stensrud (2026).
 
 * `plot()` methods draw the threshold and boundary plots of the manuscript's
   examples and Figures 3 and 5 of Richardson, Evans, and Robins (2011).
-* `plot_comparisons()` (or `plot(x, type = "comparisons")`) draws Figure 1
-  of the manuscript with the values filled in, as in the figures of the
+* `plot_comparisons()` (or `plot(x, type = "comparisons")`) draws the
+  comparison figure of the manuscript with the values filled in, as in the figures of the
   examples: estimated quantities in green, assumed ones in orange, implied
   ones in red.
 * `expand_counts()` converts published 2 x 2 x 2 tables into individual-level

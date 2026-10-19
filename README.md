@@ -21,7 +21,7 @@ to reason about these two quantities directly:
 | `ate_sensitivity()` | How extreme must `theta_A0` / `theta_N1` be for the decision to flip? Thresholds, the boundary line in the two-sided case, and implied comparisons with identified quantities. |
 | `ate_bounds()` | Which bounds on the ATE follow from restrictions I find credible (e.g. "no harm among always-takers")? |
 | `ate_bayes()` | Posterior of the ATE as a function of, or under priors on, the sensitivity parameters (binary outcomes; Richardson, Evans, and Robins, 2011). |
-| `plot_comparisons()` | Roster of estimated (green), assumed (orange), and implied (red) potential outcome means by compliance type, with the comparisons between them (Figure 1 and the figures of the examples in the manuscript). |
+| `plot_comparisons()` | Roster of estimated (green), assumed (orange), and implied (red) potential outcome means by compliance type, with the comparisons between them (as in the comparison figures of the manuscript). |
 
 Uncertainty is quantified by the nonparametric bootstrap or, for binary
 outcomes, by Bayesian inference (`inference = "bayes"`), which also reports a

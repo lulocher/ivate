@@ -1,16 +1,16 @@
 #' Restrictions on the sensitivity parameters
 #'
 #' Construct restrictions on a sensitivity parameter, stated on whichever
-#' scale is most natural (Section 2.5 of Locher, Richardson, and Stensrud,
-#' 2026). A restriction is passed to the `theta_A0` or `theta_N1` argument of
+#' scale is most natural (Locher, Richardson, and Stensrud, 2026). A
+#' restriction is passed to the `theta_A0` or `theta_N1` argument of
 #' [ate_bounds()] or [ate_sensitivity()], which determines the parameter it
 #' applies to. Each restriction translates into an interval for the
 #' sensitivity parameter; several restrictions (in a list) are intersected,
 #' and the result is always intersected with the outcome range.
 #'
 #' The scales are defined within compliance type (effect, ratio) or relative
-#' to compliers (heterogeneity), mirroring the implied comparisons in
-#' Figure 1 of the manuscript:
+#' to compliers (heterogeneity), mirroring the implied comparisons in the
+#' comparison figure of the manuscript:
 #'
 #' | Constructor | `theta_A0` \eqn{(\theta_A^{(0)})} | `theta_N1` \eqn{(\theta_N^{(1)})} |
 #' |---|---|---|

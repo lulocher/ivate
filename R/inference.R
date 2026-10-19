@@ -1,7 +1,7 @@
 # Uncertainty quantification. All thresholds, boundary points, and bounds are
 # smooth functions of the identified quantities q, so it suffices to draw q
-# once -- by the nonparametric bootstrap (Section 2.6 of Locher, Richardson,
-# and Stensrud, 2026) or from its posterior (Richardson, Evans, and Robins,
+# once -- by the nonparametric bootstrap (Locher, Richardson, and Stensrud,
+# 2026) or from its posterior (Richardson, Evans, and Robins,
 # 2011; see bayes.R) -- and to re-evaluate each statistic on every draw.
 
 #' Bootstrap replicates of the identified quantities
@@ -82,8 +82,9 @@ warn_dropped <- function(..., n_draws) {
   }, numeric(1)))
   if (dropped > 0) {
     warning(sprintf(paste0(
-      "%d of %d bootstrap replicates could not be evaluated (e.g. a compliance type ",
-      "was absent from the resample) and were dropped."), dropped, n_draws), call. = FALSE)
+      "%d of %d bootstrap replicates or posterior draws could not be evaluated (e.g. a ",
+      "compliance type was absent from the resample) and were dropped."), dropped, n_draws),
+      call. = FALSE)
   }
 }
 

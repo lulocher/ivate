@@ -28,7 +28,7 @@
 #'   threshold is available and the boundary plot otherwise; `"threshold"` or
 #'   `"boundary"` force a type (the boundary plot requires two-sided
 #'   non-compliance). `"comparisons"` draws the roster of estimated, assumed,
-#'   and implied quantities (Figure 1 of the manuscript); see
+#'   and implied quantities (the comparison figure of the manuscript); see
 #'   [plot_comparisons()], which also offers intervals.
 #' @param range Numeric vector of length 2 giving the plotted range of the
 #'   sensitivity parameter(s). Defaults to the outcome range.

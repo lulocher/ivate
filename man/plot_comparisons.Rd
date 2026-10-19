@@ -28,7 +28,7 @@ A \code{ggplot} object.
 }
 \description{
 Draws the potential outcome means by compliance type and treatment, in the
-layout of Figure 1 of Locher, Richardson, and Stensrud (2026), with the
+layout of the comparison figure of Locher, Richardson, and Stensrud (2026), with the
 values of a sensitivity analysis filled in (as in the figures of its
 examples). Rows are \eqn{E[Y(1)]} and
 \eqn{E[Y(0)]}; columns are compliers, always-takers, and never-takers

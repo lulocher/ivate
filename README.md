@@ -31,8 +31,12 @@ posterior check of the IV inequalities.
 
 ```r
 # install.packages("remotes")
-remotes::install_github("lulocher/ivate")
+remotes::install_github("lulocher/ivate", build_vignettes = TRUE)
 ```
+
+The vignette `vignette("replication", package = "ivate")` reproduces all
+results in the examples of Locher, Richardson, and Stensrud (2026) from the
+cell counts reported in the manuscript.
 
 ## Example
 

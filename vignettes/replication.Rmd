@@ -1,0 +1,197 @@
+---
+title: "Reproducing the examples of Locher, Richardson, and Stensrud (2026)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reproducing the examples of Locher, Richardson, and Stensrud (2026)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
+```
+
+This vignette reproduces all estimates, bounds, thresholds, implied
+comparisons, and bootstrap confidence intervals reported in the examples
+section of Locher, Richardson, and Stensrud (2026).
+
+## Data
+
+With a binary instrument $Z$, treatment $A$, and outcome $Y$, the observed
+data are fully summarised by the counts of the eight combinations of
+$(Z, A, Y)$. The counts below are those reported in the appendix of the
+manuscript.
+
+* **Example 1** (Bakker et al., 2019): $Z$ indicates assignment to the group
+  invited to supplemental MRI screening, $A$ participation in MRI screening,
+  and $Y$ a diagnosis of interval breast cancer. The counts are taken from
+  the published trial results.
+* **Example 2** (Finkelstein et al., 2012): $Z$ indicates selection in the
+  Oregon Health Insurance Experiment lottery, $A$ enrollment in Medicaid, and
+  $Y$ any primary care visit in the previous 12 months, as reported by
+  respondents to the 12-month survey. The counts are derived from the public
+  use data of the experiment (NBER, <https://doi.org/10.60592/rx0z-sp89>).
+
+```{r data}
+library(ivate)
+
+counts <- data.frame(
+  z         = rep(0:1, each = 4),
+  a         = rep(rep(0:1, each = 2), times = 2),
+  y         = rep(0:1, times = 4),
+  example_1 = c(32151, 161, 0, 0, 3262, 16, 4779, 4),
+  example_2 = c(4717, 5572, 292, 1230, 2971, 3745, 1315, 3650)
+)
+counts
+
+# One row per individual
+bakker <- expand_counts(counts[, c("z", "a", "y", "example_1")], count = "example_1")
+oregon <- expand_counts(counts[, c("z", "a", "y", "example_2")], count = "example_2")
+c(example_1 = nrow(bakker), example_2 = nrow(oregon))
+```
+
+All confidence intervals are percentile intervals from 1000 bootstrap
+replicates. As in the manuscript, the seed is reset to the same value before
+every analysis.
+
+```{r settings}
+n_boot <- 1000
+seed   <- 2026
+```
+
+## Example 1: supplemental MRI screening for breast cancer
+
+Non-compliance is one-sided: no women in the control group underwent MRI
+screening, so there are no always-takers and $\theta_N^{(1)}$ is the only
+sensitivity parameter. The decision criterion is $\Psi_{ATE} < 0$.
+
+**LATE and unrestricted bounds.** Without restrictions, the bounds coincide
+with the Balke-Pearl bounds.
+
+```{r bakker-bounds}
+set.seed(seed)
+bounds_b <- ate_bounds(bakker, y ~ a | z, n_boot = n_boot)
+bounds_b
+```
+
+**Decomposition.** The identified quantities entering the decomposition of
+the ATE:
+
+```{r bakker-identified}
+bounds_b$identified[, c("quantity", "estimate", "ci_lower", "ci_upper")]
+```
+
+**Threshold and implied comparisons.** The criterion holds if and only if
+$\theta_N^{(1)}$ lies below the threshold. At the threshold, the output
+reports the implied effect and risk ratio among never-takers and the implied
+outcome heterogeneity between never-takers and compliers under treatment,
+next to the observed heterogeneity under no treatment ($\mu_N^{(0)} -
+\mu_C^{(0)}$; the manuscript reports its negative, $\mu_C^{(0)} -
+\mu_N^{(0)}$).
+
+```{r bakker-sensitivity}
+set.seed(seed)
+sens_b <- ate_sensitivity(bakker, y ~ a | z, direction = "less", n_boot = n_boot)
+sens_b
+plot_comparisons(sens_b)
+```
+
+The implied comparisons with confidence intervals for both the implied
+values and the identified benchmarks:
+
+```{r bakker-implied}
+sens_b$implied[, c("comparison", "implied_value", "implied_ci_lower", "implied_ci_upper",
+                   "benchmark_value", "benchmark_ci_lower", "benchmark_ci_upper")]
+```
+
+**Improved bounds.** Assuming that MRI screening increases cancer incidence
+among never-takers by at most a factor of 1.2:
+
+```{r bakker-ratio}
+set.seed(seed)
+bounds_b_rr <- ate_bounds(bakker, y ~ a | z,
+                          theta_N1 = restrict_ratio(upper = 1.2), n_boot = n_boot)
+bounds_b_rr
+```
+
+## Example 2: public health insurance and health care utilization
+
+Non-compliance is two-sided, so both $\theta_A^{(0)}$ and $\theta_N^{(1)}$ are
+unidentified. The decision criterion is $\Psi_{ATE} > 0$.
+
+**LATE, unrestricted bounds, and the boundary.** Without a restriction on
+either sensitivity parameter, the criterion is characterised by the boundary
+$\mathcal{B}$, reported both on the level scale and on the scale of the
+implied type-specific effects.
+
+```{r oregon-boundary}
+set.seed(seed)
+sens_f <- ate_sensitivity(oregon, y ~ a | z, n_boot = n_boot)
+sens_f
+
+set.seed(seed)
+bounds_f <- ate_bounds(oregon, y ~ a | z, n_boot = n_boot)
+bounds_f
+```
+
+**Step 1: worst case for $\theta_A^{(0)}$.** Fixing $\theta_A^{(0)} = 1$
+yields a threshold for $\theta_N^{(1)}$ and the implied comparisons at that
+threshold.
+
+```{r oregon-step1}
+set.seed(seed)
+step_1 <- ate_sensitivity(oregon, y ~ a | z, theta_A0 = 1, n_boot = n_boot)
+step_1
+plot_comparisons(step_1)
+step_1$implied[, c("comparison", "implied_value", "implied_ci_lower", "implied_ci_upper",
+                   "benchmark_value", "benchmark_ci_lower", "benchmark_ci_upper")]
+
+set.seed(seed)
+ate_bounds(oregon, y ~ a | z, theta_A0 = 1, n_boot = n_boot)
+```
+
+**Step 2: a credible restriction on $\theta_A^{(0)}$.** Assuming a
+non-negative treatment effect among always-takers, the least favourable value
+is $\theta_A^{(0)} = \mu_A^{(1)}$, re-estimated in every bootstrap replicate.
+
+```{r oregon-step2}
+set.seed(seed)
+step_2 <- ate_sensitivity(oregon, y ~ a | z,
+                          theta_A0 = restrict_effect(lower = 0), n_boot = n_boot)
+step_2
+
+set.seed(seed)
+ate_bounds(oregon, y ~ a | z, theta_A0 = restrict_effect(lower = 0), n_boot = n_boot)
+```
+
+**Improved bounds under stable outcome heterogeneity.** Never-takers and
+compliers differ under treatment by at most as much as under no treatment,
+$|\theta_N^{(1)} - \mu_C^{(1)}| \le |\mu_N^{(0)} - \mu_C^{(0)}|$, and
+analogously for always-takers,
+$|\theta_A^{(0)} - \mu_C^{(0)}| \le |\mu_A^{(1)} - \mu_C^{(1)}|$.
+
+```{r oregon-heterogeneity}
+set.seed(seed)
+ate_bounds(
+  oregon, y ~ a | z,
+  theta_N1 = restrict_heterogeneity(lower = ~ -abs(mu_N0 - mu_C0), upper = ~ abs(mu_N0 - mu_C0)),
+  theta_A0 = restrict_heterogeneity(lower = ~ -abs(mu_A1 - mu_C1), upper = ~ abs(mu_A1 - mu_C1)),
+  n_boot = n_boot
+)
+```
+
+## References
+
+Bakker, M. F., et al. (2019). Supplemental MRI screening for women with
+extremely dense breast tissue. *New England Journal of Medicine*, 381(22),
+2091--2102.
+
+Finkelstein, A., et al. (2012). The Oregon Health Insurance Experiment:
+Evidence from the first year. *The Quarterly Journal of Economics*, 127(3),
+1057--1106.
+
+Locher, L., Richardson, T., and Stensrud, M. (2026). Informative inference on
+the average treatment effect with instrumental variables.
+
+National Bureau of Economic Research. Oregon Health Insurance Experiment
+public use data. <https://doi.org/10.60592/rx0z-sp89>

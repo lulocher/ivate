@@ -52,6 +52,11 @@ First public version, aligned with Locher, Richardson, and Stensrud (2026).
 * `expand_counts()` converts published 2 x 2 x 2 tables into individual-level
   data.
 
+## Documentation
+
+* New vignette `vignette("replication")` reproduces all results in the
+  examples of the manuscript from the published cell counts.
+
 ## Breaking changes relative to the development version
 
 * `decision_threshold` is now `cutoff`; `bounds_y0_always_takers` /

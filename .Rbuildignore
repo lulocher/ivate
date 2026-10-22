@@ -4,3 +4,5 @@
 \.Rhistory$
 ^.*\.Rcheck$
 ^ivate_.*\.tar\.gz$
+^doc$
+^Meta$

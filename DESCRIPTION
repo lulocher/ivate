@@ -30,8 +30,11 @@ Imports:
     ggplot2 (>= 3.4.0),
     stats
 Suggests:
+    knitr,
     patchwork,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr
 URL: https://github.com/lulocher/ivate
 BugReports: https://github.com/lulocher/ivate/issues

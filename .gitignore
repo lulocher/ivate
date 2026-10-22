@@ -4,3 +4,6 @@
 .Ruserdata
 *.Rcheck/
 ivate_*.tar.gz
+/doc/
+/Meta/
+inst/doc

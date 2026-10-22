@@ -1,10 +1,8 @@
 Package: ivate
 Title: Informative Inference on the Average Treatment Effect with Instrumental Variables
 Version: 0.1.0
-Authors@R: c(
-    person("Luca", "Locher", email = "luca.locher@uzh.ch", role = c("aut", "cre")),
-    person("Thomas", "Richardson", role = "aut"),
-    person("Mats", "Stensrud", role = "aut"))
+Authors@R:
+    person("Luca", "Locher", email = "luca.locher@uzh.ch", role = c("aut", "cre"))
 Description: Provides tools for sensitivity analysis and partial identification
     of the average treatment effect (ATE) in instrumental variable (IV)
     settings with a binary instrument and a binary treatment. Under the

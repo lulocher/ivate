@@ -63,11 +63,5 @@ Useful links:
 \author{
 \strong{Maintainer}: Luca Locher \email{luca.locher@uzh.ch}
 
-Authors:
-\itemize{
-  \item Thomas Richardson
-  \item Mats Stensrud
-}
-
 }
 \keyword{internal}
